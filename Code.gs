@@ -14,6 +14,11 @@ const HOJA_LOG = 'Log';
 const N_BLOQUES = 6;
 const MAX_PTS = 100;       // máximo por bloque (6 x 100 = 600)
 const CLASIFICAN = 6;      // equipos que clasifican
+const NOMBRES_ORIGINALES = [   // nombres de fábrica: se restauran al reiniciar el juego (por id 1..10)
+  'Dream Team', 'Mineroraptors de la PGN', 'Sirius', 'Cracks gpt', 'Como tú',
+  'El combo del pechi', 'Los últimos del examen, primeros en confianza',
+  'La Nasa nos busca pero no contestamos', 'Obsidiana', '😎Sin Talento, pero con Actitud 😎'
+];
 const HB_VIVO_MS = 20000;  // un equipo se ve "conectado" si hubo señal en los últimos 20 s
 
 // Columnas (1-based) de la hoja Equipos
@@ -329,8 +334,17 @@ function reiniciar_() {
     sh.getRange(2, C.clasif, n, 1).setValue(false);
   }
   const cache = CacheService.getScriptCache();
-  leerEquipos_().forEach(e => cache.remove('hb_' + e.id));
-  log_('', 'reiniciar', '');
+  const equipos = leerEquipos_();
+  equipos.forEach(e => {
+    cache.remove('hb_' + e.id);
+    // restaurar el nombre original (por si el admin lo renombró)
+    if (NOMBRES_ORIGINALES[e.id - 1]) sh.getRange(e.fila, C.nombre).setValue(NOMBRES_ORIGINALES[e.id - 1]);
+  });
+  // dejar el registro (Log) en blanco; queda solo el encabezado
+  const shLog = hoja_(HOJA_LOG);
+  const nLog = shLog.getLastRow() - 1;
+  if (nLog > 0) shLog.getRange(2, 1, nLog, 4).clearContent();
+  log_('', 'reiniciar', 'juego reiniciado desde el panel');
   return invalidar_({ ok: true });
 }
 
