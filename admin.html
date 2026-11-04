@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desafío 360 - Menú administrador</title>
+
+  <!-- Fuente Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --amarillo-institucional: #ffe601;
+      --azul-oscuro: #063853;
+      --gris-fondo: #ededed;
+      --blanco-puro: #ffffff;
+      --verde-acierto: #10b981;
+      --rojo-fallo: #ef4444;
+      --naranja: #f59e0b;
+      --texto-suave: #64748b;
+      --radio-curvo: 20px;
+      --radio-boton: 50px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: 'Poppins', sans-serif;
+      background: var(--gris-fondo);
+      color: var(--azul-oscuro);
+    }
+    button { font-family: 'Poppins', sans-serif; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+    /* ---------- Cabecera ---------- */
+    .top {
+      background: var(--amarillo-institucional);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .top-in {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 6px 16px;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .top-logo { max-height: 42px; max-width: 140px; width: auto; object-fit: contain; display: block; }
+    .top-title {
+      margin: 0;
+      font-size: clamp(0.9rem, 3.6vw, 1.2rem);
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      text-align: right;
+    }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ---------- Panel de control ---------- */
+    .control {
+      background: var(--blanco-puro);
+      border-radius: var(--radio-curvo);
+      box-shadow: 0 3px 8px rgba(6, 56, 83, 0.06);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 760px) { .control { grid-template-columns: 1fr auto; align-items: center; } }
+
+    .estado-box { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .estado-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 7px 14px;
+      border-radius: 30px;
+      background: var(--gris-fondo);
+    }
+    .estado-chip i { width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; display: block; }
+    .estado-chip.en_curso { background: #d1fae5; } .estado-chip.en_curso i { background: var(--verde-acierto); animation: parpadeo 1.2s infinite; }
+    .estado-chip.pausada { background: #fef3c7; } .estado-chip.pausada i { background: var(--naranja); }
+    .estado-chip.finalizada { background: var(--azul-oscuro); color: var(--amarillo-institucional); } .estado-chip.finalizada i { background: var(--amarillo-institucional); }
+    @keyframes parpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+    .reloj { line-height: 1.05; }
+    .reloj b { display: block; font-size: 1.9rem; font-weight: 900; }
+    .reloj span { font-size: 0.68rem; font-weight: 700; color: var(--texto-suave); text-transform: uppercase; letter-spacing: 1px; }
+
+    .acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      border: none;
+      border-radius: var(--radio-boton);
+      padding: 13px 22px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.1s ease, opacity 0.2s ease;
+    }
+    .btn:active:not(:disabled) { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-iniciar { background: var(--azul-oscuro); color: var(--amarillo-institucional); box-shadow: 0 6px 16px rgba(6, 56, 83, 0.28); }
+    .btn-pausar { background: var(--amarillo-institucional); color: var(--azul-oscuro); border: 3px solid var(--azul-oscuro); padding: 10px 20px; }
+    .btn-reiniciar { background: transparent; color: var(--texto-suave); padding: 13px 14px; font-weight: 700; }
+    @media (max-width: 520px) { .acciones .btn { flex: 1 1 100%; } }
+
+    .aviso-demo {
+      grid-column: 1 / -1;
+      font-size: 0.72rem;
+      color: var(--texto-suave);
+      background: var(--gris-fondo);
+      border-radius: 12px;
+      padding: 8px 12px;
+      line-height: 1.35;
+    }
+
+    /* ---------- KPIs ---------- */
+    .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    @media (min-width: 760px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
+    .kpi { background: var(--blanco-puro); border-radius: 16px; padding: 12px 14px; box-shadow: 0 2px 6px rgba(6, 56, 83, 0.05); }
+    .kpi b { display: block; font-size: 1.5rem; font-weight: 900; line-height: 1.1; }
+    .kpi span { font-size: 0.68rem; font-weight: 700; color: var(--texto-suave); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ---------- Menu (pestañas) ---------- */
+    .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+    .tab {
+      flex-shrink: 0;
+      border: 2px solid transparent;
+      background: var(--blanco-puro);
+      color: var(--azul-oscuro);
+      border-radius: var(--radio-boton);
+      padding: 10px 18px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(6, 56, 83, 0.06);
+    }
+    .tab.activa { background: var(--azul-oscuro); color: var(--amarillo-institucional); }
+    .tab .cand { font-size: 0.75rem; }
+
+    .vista { display: none; }
+    .vista.activa { display: block; animation: entrada 0.3s ease; }
+    @keyframes entrada { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* ---------- Tarjetas de grupo ---------- */
+    .grid-grupos { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; align-items: start; }
+    .gcard {
+      background: var(--blanco-puro);
+      border: 2px solid transparent;
+      border-radius: var(--radio-curvo);
+      box-shadow: 0 3px 8px rgba(6, 56, 83, 0.06);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .gcard.lider { border-color: var(--amarillo-institucional); box-shadow: 0 4px 14px rgba(255, 230, 1, 0.5); }
+    .ghead { display: flex; align-items: center; gap: 10px; }
+    .gpos {
+      flex-shrink: 0;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--azul-oscuro);
+      color: var(--amarillo-institucional);
+      font-weight: 900;
+      font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .gname { flex: 1; min-width: 0; }
+    .gname b { display: block; font-size: 1rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gname span { font-size: 0.7rem; font-weight: 600; color: var(--texto-suave); }
+    .gpts { text-align: right; line-height: 1; }
+    .gpts b { font-size: 1.4rem; font-weight: 900; }
+    .gpts span { display: block; font-size: 0.6rem; font-weight: 700; color: var(--texto-suave); text-transform: uppercase; }
+
+    .barra { height: 8px; border-radius: 8px; background: rgba(6, 56, 83, 0.12); overflow: hidden; }
+    .barra i { display: block; height: 100%; border-radius: 8px; background: var(--azul-oscuro); transition: width 0.4s ease; }
+
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      width: 28px; height: 28px; border-radius: 50%;
+      font-size: 0.72rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--gris-fondo); color: var(--texto-suave);
+    }
+    .chip.ok { background: var(--verde-acierto); color: #fff; }
+    .chip.now { background: var(--amarillo-institucional); color: var(--azul-oscuro); box-shadow: 0 0 0 2px var(--azul-oscuro); }
+
+    .gstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .gstat { background: var(--gris-fondo); border-radius: 12px; padding: 7px 4px; text-align: center; }
+    .gstat b { display: block; font-size: 0.92rem; font-weight: 800; }
+    .gstat span { font-size: 0.58rem; font-weight: 700; color: var(--texto-suave); text-transform: uppercase; }
+
+    .gdetalle { display: none; border-top: 1px dashed rgba(6, 56, 83, 0.25); padding-top: 8px; }
+    .gcard.abierta .gdetalle { display: block; }
+    .drow { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; font-size: 0.74rem; padding: 5px 0; }
+    .drow .n { font-weight: 700; }
+    .drow .p { font-weight: 800; min-width: 52px; text-align: right; }
+    .drow .t { color: var(--texto-suave); font-weight: 600; min-width: 48px; text-align: right; }
+    .drow.pend { opacity: 0.45; }
+    .toggle-hint { font-size: 0.66rem; font-weight: 700; color: var(--texto-suave); text-align: center; }
+
+    /* ---------- Estadisticas ---------- */
+    .stat-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 860px) { .stat-grid { grid-template-columns: 1fr 1fr; } .span2 { grid-column: 1 / -1; } }
+    .panel { background: var(--blanco-puro); border-radius: var(--radio-curvo); box-shadow: 0 3px 8px rgba(6, 56, 83, 0.06); padding: 16px; }
+    .panel h3 { margin: 0 0 12px; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px; }
+    .destacado { display: flex; align-items: center; gap: 12px; background: var(--azul-oscuro); color: #fff; border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; }
+    .destacado .ic { font-size: 1.7rem; }
+    .destacado b { display: block; font-size: 1.05rem; color: var(--amarillo-institucional); font-weight: 900; }
+    .destacado span { font-size: 0.72rem; opacity: 0.85; }
+    .lista { display: flex; flex-direction: column; gap: 8px; }
+    .fila { display: flex; align-items: center; gap: 10px; background: var(--gris-fondo); border-radius: 14px; padding: 9px 12px; font-size: 0.82rem; }
+    .fila .pos { width: 26px; height: 26px; border-radius: 50%; background: var(--azul-oscuro); color: var(--amarillo-institucional); font-weight: 900; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .fila .nm { flex: 1; min-width: 0; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fila .vl { font-weight: 800; white-space: nowrap; }
+    .fila .sub { font-size: 0.66rem; font-weight: 700; color: var(--texto-suave); display: block; }
+    .etiqueta { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; background: var(--amarillo-institucional); color: var(--azul-oscuro); padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+
+    .bars { display: flex; flex-direction: column; gap: 9px; }
+    .bar-row { display: grid; grid-template-columns: 78px 1fr 46px; gap: 8px; align-items: center; font-size: 0.74rem; font-weight: 700; }
+    .bar-row .barra { height: 12px; }
+    .bar-row .barra i { background: var(--azul-oscuro); }
+    .bar-row b { text-align: right; }
+
+    .tabla-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    th { text-align: left; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--texto-suave); padding: 6px 8px; white-space: nowrap; }
+    td { padding: 9px 8px; border-top: 1px solid var(--gris-fondo); font-weight: 600; white-space: nowrap; }
+    td.b { font-weight: 800; }
+
+    /* ---------- Ganadores ---------- */
+    .bloqueado { text-align: center; padding: 34px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .bloqueado .cand-big { width: 64px; height: 64px; border-radius: 50%; background: var(--gris-fondo); display: flex; align-items: center; justify-content: center; }
+    .bloqueado h3 { margin: 0; font-size: 1.05rem; }
+    .bloqueado p { margin: 0; font-size: 0.8rem; color: var(--texto-suave); max-width: 380px; line-height: 1.4; }
+    .bloqueado .barra { width: 100%; max-width: 320px; }
+
+    .podio { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 10px; align-items: end; max-width: 620px; margin: 0 auto 18px; }
+    .pod { background: var(--blanco-puro); border-radius: 20px 20px 0 0; text-align: center; padding: 14px 8px; box-shadow: 0 3px 8px rgba(6, 56, 83, 0.08); }
+    .pod .med { font-size: 2.2rem; line-height: 1; }
+    .pod b { display: block; margin-top: 6px; font-size: 0.95rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pod span { font-size: 0.75rem; font-weight: 700; color: var(--texto-suave); }
+    .pod.p1 { background: var(--amarillo-institucional); min-height: 190px; border: 3px solid var(--azul-oscuro); border-bottom: none; }
+    .pod.p1 span { color: var(--azul-oscuro); }
+    .pod.p2 { min-height: 150px; }
+    .pod.p3 { min-height: 125px; }
+
+    /* ---------- Toast ---------- */
+    .toast {
+      position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 30px);
+      background: var(--azul-oscuro); color: var(--amarillo-institucional);
+      font-weight: 800; font-size: 0.82rem; padding: 12px 20px; border-radius: 30px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3); opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease; z-index: 50; max-width: 92vw; text-align: center;
+    }
+    .toast.ver { opacity: 1; transform: translate(-50%, 0); }
+  
+    /* ---- Conexión real ---- */
+    .gacts { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+    .mini { border:1px solid rgba(6,56,83,0.2); background:#fff; color:var(--azul-oscuro); border-radius:30px; padding:4px 10px; font-size:0.68rem; font-weight:700; }
+    .mini.rojo { color:var(--rojo-fallo); border-color:rgba(239,68,68,0.35); }
+    .btn-sec { background:#fff; color:var(--azul-oscuro); border:2px solid var(--azul-oscuro); padding:10px 18px; }
+    .tag-clas { display:inline-block; background:#d1fae5; color:#065f46; font-size:0.62rem; font-weight:800; border-radius:20px; padding:2px 8px; margin-left:6px; }
+    .gcard.libre { opacity:0.75; }
+  </style>
+</head>
+<body>
+
+  <header class="top">
+    <div class="top-in">
+      <img id="logo" class="top-logo" alt="Desafío 360">
+      <h1 class="top-title">Menú administrador</h1>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- Control de la actividad -->
+    <section class="control">
+      <div class="estado-box">
+        <span class="estado-chip" id="estado-chip"><i></i><em id="estado-texto" style="font-style:normal">Sin iniciar</em></span>
+        <div class="reloj"><b id="reloj">00:00</b><span>Tiempo de actividad</span></div>
+      </div>
+      <div class="acciones">
+        <button class="btn btn-iniciar" id="btn-iniciar" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+          INICIAR COMPETENCIA
+        </button>
+        <button class="btn btn-pausar" id="btn-pausar" type="button">
+          <svg id="ic-pausa" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4.5" height="16" rx="1.5"/><rect x="13.5" y="4" width="4.5" height="16" rx="1.5"/></svg>
+          <span id="txt-pausar">PAUSAR ACTIVIDAD</span>
+        </button>
+        <button class="btn btn-sec" id="btn-finalizar" type="button">FINALIZAR</button>
+        <button class="btn btn-sec" id="btn-clasificar" type="button">MARCAR 6 CLASIFICADOS</button>
+        <button class="btn btn-reiniciar" id="btn-reiniciar" type="button">Reiniciar</button>
+      </div>
+      <div class="aviso-demo" id="aviso">Conectando con el servidor…</div>
+    </section>
+
+    <!-- Resumen -->
+    <section class="kpis" id="kpis"></section>
+
+    <!-- Menu -->
+    <nav class="tabs" id="tabs">
+      <button class="tab activa" data-v="avance" type="button">📊 Avance de cada grupo</button>
+      <button class="tab" data-v="stats" type="button">📈 Estadísticas</button>
+      <button class="tab" data-v="ganadores" type="button">🏆 Ganadores <span class="cand" id="cand"></span></button>
+    </nav>
+
+    <section class="vista activa" id="v-avance"><div class="grid-grupos" id="grid-grupos"></div></section>
+    <section class="vista" id="v-stats"><div class="stat-grid" id="stat-grid"></div></section>
+    <section class="vista" id="v-ganadores"><div id="ganadores"></div></section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      'use strict';
+      /* ===================== CONFIGURACION ===================== */
+      var LOGO_SRC = 'imagen/desafio360.png';
+      var API = 'https://script.google.com/macros/s/AKfycbx3aC96Xlgk00uxsN3gpkSXfVp4CuWnQ_GDLDCcuYnGqDmondAY-1mpY84BhjQBfMps/exec';
+      var RETOS = [
+        'Reto video',
+        'Reto de preguntas',
+        'Reto de la sopa de letras',
+        'Reto de audios',
+        'Reto de búsqueda de objetos',
+        'Reto del ahorcado'
+      ];
+      var PUNTOS_POR_RETO = 100;
+      var CLASIFICAN = 6;
+      /* ========================================================= */
+
+      var N = RETOS.length;
+      var estado = 'sin_iniciar';   // sin_iniciar | en_curso | pausada | finalizada
+      var grupos = [], rankIds = [], llegadaIds = [];
+      var base = { efectivo: 0, local: Date.now() };
+      var abiertas = {};
+      var vistaActual = 'avance';
+      var pass = null;
+      try { pass = sessionStorage.getItem('d360_admin_pass'); } catch (e) {}
+      var autoFin = false, autoClas = false, cargando = false;
+
+      /* ---------- utilidades ---------- */
+      function $(id) { return document.getElementById(id); }
+      function esc(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+      function mmss(s) { s = Math.max(0, Math.round(s)); var m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
+
+      var logo = $('logo');
+      logo.src = LOGO_SRC;
+      logo.onerror = function () { logo.onerror = null; logo.src = 'https://placehold.co/140x42/ffe601/063853?text=Desaf%C3%ADo+360'; };
+
+      function toast(msg) {
+        var t = $('toast');
+        t.textContent = msg;
+        t.classList.add('ver');
+        clearTimeout(toast.id);
+        toast.id = setTimeout(function () { t.classList.remove('ver'); }, 2600);
+      }
+
+      /* ---------- comunicación con el servidor ---------- */
+      function api(params) {
+        var qs = new URLSearchParams(params).toString();
+        var ctl = new AbortController();
+        var to = setTimeout(function () { ctl.abort(); }, 12000);
+        return fetch(API + '?' + qs, { signal: ctl.signal, cache: 'no-store' })
+          .then(function (r) { return r.json(); })
+          .finally(function () { clearTimeout(to); });
+      }
+
+      function orden(accion, extra) {
+        if (!pass) {
+          var p = window.prompt('Contraseña de administrador:');
+          if (!p) return Promise.resolve(null);
+          pass = p;
+        }
+        var params = Object.assign({ accion: accion, pass: pass }, extra || {});
+        return api(params).then(function (r) {
+          if (!r.ok) {
+            if (/Contraseña/.test(r.error || '')) {
+              pass = null;
+              try { sessionStorage.removeItem('d360_admin_pass'); } catch (e) {}
+              toast('Contraseña incorrecta');
+            } else toast('⚠ ' + r.error);
+            return r;
+          }
+          try { sessionStorage.setItem('d360_admin_pass', pass); } catch (e) {}
+          return refrescar().then(function () { return r; });
+        }).catch(function () { toast('Sin conexión con el servidor'); return null; });
+      }
+
+      function aviso(ok, msg) {
+        var d = new Date();
+        $('aviso').innerHTML = ok
+          ? '🟢 Conectado al servidor · actualizado ' + d.toLocaleTimeString()
+          : '🔴 Sin conexión con el servidor' + (msg ? ' (' + esc(msg) + ')' : '') + ' · reintentando…';
+      }
+
+      function aplicar(s) {
+        estado = s.estado;
+        base = { efectivo: (s.tiempoEfectivoMs || 0) / 1000, local: Date.now() };
+        rankIds = s.ranking || [];
+        llegadaIds = s.llegada || [];
+        grupos = s.equipos.map(function (e) {
+          return {
+            id: e.id, nombre: e.nombre, ocupado: e.ocupado, conectado: e.conectado,
+            terminadoSrv: e.terminado, tiempoTotal: e.tiempoTotal, finMs: e.finMs, clasificado: e.clasificado,
+            retos: e.pts.map(function (p, i) { return { puntos: p, tiempo: e.seg[i] }; })
+          };
+        });
+      }
+
+      function refrescar() {
+        if (cargando) return Promise.resolve();
+        cargando = true;
+        return api({ accion: 'estado' }).then(function (s) {
+          if (!s.ok) throw new Error(s.error);
+          aplicar(s);
+          aviso(true);
+          render();
+          automatismos();
+        }).catch(function (e) {
+          aviso(false, e && e.message);
+        }).finally(function () { cargando = false; });
+      }
+
+      /* ---------- modelo ---------- */
+      function segundosActuales() { return estado === 'en_curso' ? base.efectivo + (Date.now() - base.local) / 1000 : base.efectivo; }
+      function completados(g) { return g.retos.filter(function (r) { return r.puntos !== null; }).length; }
+      function puntos(g) { return g.retos.reduce(function (a, r) { return a + (r.puntos || 0); }, 0); }
+      function tiempo(g) {
+        if (g.terminadoSrv && g.tiempoTotal !== null) return g.tiempoTotal;
+        return g.retos.reduce(function (a, r) { return a + (r.tiempo || 0); }, 0);
+      }
+      function terminado(g) { return completados(g) >= N; }
+      function participantes() { return grupos.filter(function (g) { return g.ocupado; }); }
+
+      // Orden oficial calculado por el servidor (puntaje desc, desempate por menor tiempo)
+      function ranking() {
+        var pos = {};
+        rankIds.forEach(function (id, i) { pos[id] = i; });
+        return participantes().sort(function (a, b) { return pos[a.id] - pos[b.id]; });
+      }
+      function porId(id) { return grupos.filter(function (g) { return g.id === id; })[0]; }
+
+      /* ---------- automatismos (con el panel abierto) ---------- */
+      function automatismos() {
+        var part = participantes();
+        if (estado === 'sin_iniciar') { autoFin = false; autoClas = false; }
+        if (estado === 'en_curso' && part.length > 0 && part.every(terminado) && !autoFin) {
+          autoFin = true;
+          orden('finalizar').then(function (r) {
+            if (r && r.ok) { toast('🏆 ¡Todos los grupos terminaron!'); cambiarVista('ganadores'); }
+          });
+        }
+        if (estado === 'finalizada' && !autoClas && !grupos.some(function (g) { return g.clasificado; })) {
+          autoClas = true;
+          orden('clasificar');
+        }
+      }
+
+      /* ---------- botones de control ---------- */
+      $('btn-iniciar').addEventListener('click', function () {
+        if (estado !== 'sin_iniciar') return;
+        var n = participantes().length;
+        if (!window.confirm('¿Iniciar la competencia ahora?\nGrupos que ya eligieron: ' + n + ' de ' + grupos.length)) return;
+        orden('iniciar').then(function (r) { if (r && r.ok) toast('¡Competencia iniciada!'); });
+      });
+
+      $('btn-pausar').addEventListener('click', function () {
+        if (estado === 'en_curso') orden('pausar').then(function (r) { if (r && r.ok) toast('Competencia en pausa'); });
+        else if (estado === 'pausada') orden('reanudar').then(function (r) { if (r && r.ok) toast('Competencia reanudada'); });
+      });
+
+      $('btn-finalizar').addEventListener('click', function () {
+        if (estado !== 'en_curso' && estado !== 'pausada') return;
+        if (!window.confirm('¿Finalizar la competencia ahora? Los grupos que no terminaron quedarán con su avance actual.')) return;
+        autoFin = true;
+        orden('finalizar').then(function (r) { if (r && r.ok) { toast('Competencia finalizada'); cambiarVista('ganadores'); } });
+      });
+
+      $('btn-clasificar').addEventListener('click', function () {
+        orden('clasificar').then(function (r) { if (r && r.ok) toast('Clasificados marcados en el Sheet'); });
+      });
+
+      $('btn-reiniciar').addEventListener('click', function () {
+        if (!window.confirm('¿Reiniciar todo? Se borrará el avance y los grupos quedarán libres para volver a elegir.')) return;
+        orden('reiniciar').then(function (r) { if (r && r.ok) { abiertas = {}; autoFin = false; autoClas = false; toast('Competencia reiniciada'); } });
+      });
+
+      function accionGrupo(act, id, b) {
+        var g = porId(id);
+        if (!g) return;
+        if (act === 'ren') {
+          var n = window.prompt('Nuevo nombre para "' + g.nombre + '":', g.nombre);
+          if (n && n.trim() && n.trim() !== g.nombre) orden('renombrar', { id: id, nombre: n.trim() }).then(function (r) { if (r && r.ok) toast('Nombre actualizado'); });
+        } else if (act === 'lib') {
+          if (window.confirm('¿Liberar "' + g.nombre + '"?\nEl dispositivo actual perderá la sesión y el grupo podrá ser elegido otra vez (conserva su avance).')) {
+            orden('liberar', { id: id }).then(function (r) { if (r && r.ok) toast('Grupo liberado'); });
+          }
+        } else if (act === 'corr') {
+          var r0 = g.retos[b];
+          var p = window.prompt('Puntos del bloque ' + (b + 1) + ' (0 a ' + PUNTOS_POR_RETO + '):', r0.puntos !== null ? r0.puntos : '');
+          if (p === null || p === '') return;
+          var s = window.prompt('Segundos usados en el bloque ' + (b + 1) + ':', r0.tiempo !== null ? r0.tiempo : '');
+          if (s === null || s === '') return;
+          orden('corregir', { id: id, bloque: b + 1, pts: p, seg: s }).then(function (r) { if (r && r.ok) toast('Puntaje corregido'); });
+        }
+      }
+
+      /* ---------- render ---------- */
+      var TEXTO_ESTADO = { sin_iniciar: 'Sin iniciar', en_curso: 'En curso', pausada: 'En pausa', finalizada: 'Finalizada' };
+
+      function renderControl() {
+        var chip = $('estado-chip');
+        chip.className = 'estado-chip ' + estado;
+        $('estado-texto').textContent = TEXTO_ESTADO[estado];
+        $('reloj').textContent = mmss(segundosActuales());
+        $('btn-iniciar').disabled = estado !== 'sin_iniciar';
+        var p = $('btn-pausar');
+        p.disabled = estado === 'sin_iniciar' || estado === 'finalizada';
+        $('txt-pausar').textContent = estado === 'pausada' ? 'REANUDAR COMPETENCIA' : 'PAUSAR COMPETENCIA';
+        $('ic-pausa').innerHTML = estado === 'pausada'
+          ? '<path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/>'
+          : '<rect x="6" y="4" width="4.5" height="16" rx="1.5"/><rect x="13.5" y="4" width="4.5" height="16" rx="1.5"/>';
+        $('btn-finalizar').disabled = !(estado === 'en_curso' || estado === 'pausada');
+        $('btn-clasificar').disabled = participantes().length === 0;
+        $('btn-reiniciar').disabled = estado === 'sin_iniciar' && participantes().length === 0;
+      }
+
+      function renderKpis() {
+        var part = participantes();
+        var totalRetos = part.reduce(function (a, g) { return a + completados(g); }, 0);
+        var totalPts = part.reduce(function (a, g) { return a + puntos(g); }, 0);
+        var fin = part.filter(terminado).length;
+        var avance = part.length ? Math.round(totalRetos / (part.length * N) * 100) : 0;
+        $('kpis').innerHTML =
+          '<div class="kpi"><b>' + part.length + ' / ' + grupos.length + '</b><span>Grupos que eligieron</span></div>' +
+          '<div class="kpi"><b>' + avance + '%</b><span>Avance general</span></div>' +
+          '<div class="kpi"><b>' + fin + ' / ' + part.length + '</b><span>Grupos que terminaron</span></div>' +
+          '<div class="kpi"><b>' + totalPts + '</b><span>Puntos acumulados</span></div>';
+      }
+
+      function textoGrupo(g) {
+        if (!g.ocupado) return '⚪ Sin elegir';
+        if (terminado(g)) return '✅ Terminó todos los retos';
+        var senal = g.conectado ? '' : ' · 🔌 sin señal';
+        if (estado === 'sin_iniciar') return (g.conectado ? '🟢' : '🔌') + ' En el lobby';
+        var c = completados(g);
+        return (estado === 'pausada' ? '⏸ En pausa · ' : '▶ ') + 'Reto ' + (c + 1) + ': ' + RETOS[c] + senal;
+      }
+
+      function renderAvance() {
+        var rank = ranking();
+        var libres = grupos.filter(function (g) { return !g.ocupado; });
+        var lista = rank.concat(libres);
+        var html = '';
+        lista.forEach(function (g, i) {
+          var c = completados(g);
+          var pct = Math.round(c / N * 100);
+          var chips = RETOS.map(function (r, k) {
+            var cls = k < c ? 'ok' : (k === c && g.ocupado && estado !== 'sin_iniciar' && c < N ? 'now' : '');
+            return '<div class="chip ' + cls + '" title="' + esc(r) + '">' + (k < c ? '✓' : (k + 1)) + '</div>';
+          }).join('');
+          var mejor = '—';
+          g.retos.forEach(function (r) { if (r.puntos !== null && (mejor === '—' || r.puntos > mejor)) mejor = r.puntos; });
+          var detalle = g.retos.map(function (r, k) {
+            var hecho = r.puntos !== null;
+            var enCurso = g.ocupado && k === c && estado !== 'sin_iniciar' && c < N;
+            return '<div class="drow' + (hecho || enCurso ? '' : ' pend') + '"><span class="n">' + (k + 1) + '. ' + esc(RETOS[k]) + '</span>' +
+              '<span class="p">' + (hecho ? r.puntos + ' pts' : (enCurso ? 'en curso' : '—')) + '</span>' +
+              '<span class="t">' + (hecho ? mmss(r.tiempo) : '—') + '</span></div>';
+          }).join('');
+          var corr = g.ocupado ? '<div class="gacts"><span style="font-size:.68rem;color:var(--texto-suave);align-self:center">Corregir bloque:</span>' +
+            RETOS.map(function (r, k) { return '<button type="button" class="mini" data-act="corr" data-id="' + g.id + '" data-b="' + k + '">' + (k + 1) + '</button>'; }).join('') + '</div>' : '';
+          var acts = '<div class="gacts"><button type="button" class="mini" data-act="ren" data-id="' + g.id + '">✏️ Renombrar</button>' +
+            (g.ocupado ? '<button type="button" class="mini rojo" data-act="lib" data-id="' + g.id + '">🔓 Liberar grupo</button>' : '') + '</div>';
+          var esLider = g.ocupado && i === 0 && puntos(g) > 0;
+          html += '<article class="gcard' + (esLider ? ' lider' : '') + (g.ocupado ? '' : ' libre') + (abiertas[g.id] ? ' abierta' : '') + '" data-id="' + g.id + '">' +
+            '<div class="ghead"><div class="gpos">' + (g.ocupado ? (i + 1) : '–') + '</div>' +
+            '<div class="gname"><b>' + esc(g.nombre) + '</b><span>' + esc(textoGrupo(g)) + '</span></div>' +
+            '<div class="gpts"><b>' + puntos(g) + '</b><span>puntos</span></div></div>' +
+            '<div class="barra"><i style="width:' + pct + '%"></i></div>' +
+            '<div class="chips">' + chips + '</div>' +
+            '<div class="gstats">' +
+              '<div class="gstat"><b>' + c + '/' + N + '</b><span>Retos</span></div>' +
+              '<div class="gstat"><b>' + mmss(tiempo(g)) + '</b><span>Tiempo total</span></div>' +
+              '<div class="gstat"><b>' + mejor + '</b><span>Mejor reto</span></div>' +
+            '</div>' +
+            '<div class="gdetalle">' + detalle + corr + '</div>' +
+            acts +
+            '<div class="toggle-hint">' + (abiertas[g.id] ? 'Toca para ocultar el detalle' : 'Toca para ver el detalle por reto') + '</div>' +
+          '</article>';
+        });
+        $('grid-grupos').innerHTML = html;
+      }
+
+      function filaRank(g, i, valor, sub, etiqueta) {
+        return '<div class="fila"><div class="pos">' + (i + 1) + '</div><div class="nm">' + esc(g.nombre) + (sub ? '<span class="sub">' + sub + '</span>' : '') + '</div>' +
+          (etiqueta ? '<span class="etiqueta">' + etiqueta + '</span>' : '') + '<div class="vl">' + valor + '</div></div>';
+      }
+
+      function panelLlegada() {
+        var lista = llegadaIds.map(porId).filter(Boolean);
+        var cuerpo = lista.length
+          ? '<div class="lista">' + lista.map(function (g, i) {
+              return filaRank(g, i, mmss(g.tiempoTotal !== null ? g.tiempoTotal : tiempo(g)), puntos(g) + ' pts', i === 0 ? 'Primero en terminar' : '');
+            }).join('') + '</div>'
+          : '<p style="font-size:.78rem;color:var(--texto-suave);margin:4px 0 0">Aún ningún grupo termina los ' + N + ' retos.</p>';
+        return '<div class="panel"><h3>🏁 Primeros en terminar el recorrido</h3>' + cuerpo + '</div>';
+      }
+
+      function renderStats() {
+        var rank = ranking();
+        var hayDatos = rank.some(function (g) { return completados(g) > 0; });
+        if (!hayDatos) {
+          $('stat-grid').innerHTML = '<div class="panel span2"><div class="bloqueado"><div class="cand-big">📈</div><h3>Aún no hay estadísticas</h3><p>Cuando inicie la competencia y los grupos completen sus primeros retos, aquí verás quién va ganando, quién es más rápido y quién está a punto de ganar.</p></div></div>';
+          return;
+        }
+        var lider = rank[0];
+        var ventaja = rank.length > 1 ? puntos(rank[0]) - puntos(rank[1]) : 0;
+
+        var rapidos = rank.filter(function (g) { return completados(g) > 0; }).map(function (g) {
+          return { g: g, prom: tiempo(g) / completados(g) };
+        }).sort(function (a, b) { return a.prom - b.prom; });
+
+        var cercanos = rank.filter(function (g) { return !terminado(g); }).slice(0, 3);
+        if (!cercanos.length) cercanos = rank.slice(0, 3);
+
+        var records = RETOS.map(function (nombre, k) {
+          var mejor = null;
+          rank.forEach(function (g) {
+            var r = g.retos[k];
+            if (r.tiempo !== null && (mejor === null || r.tiempo < mejor.t)) mejor = { t: r.tiempo, g: g, p: r.puntos };
+          });
+          return '<tr><td class="b">' + (k + 1) + '. ' + esc(nombre) + '</td><td>' + (mejor ? esc(mejor.g.nombre) : '—') + '</td><td>' + (mejor ? mmss(mejor.t) : '—') + '</td><td>' + (mejor ? mejor.p + ' pts' : '—') + '</td></tr>';
+        }).join('');
+
+        var maxPts = N * PUNTOS_POR_RETO;
+        var barras = rank.map(function (g) {
+          return '<div class="bar-row"><span>' + esc(g.nombre) + '</span><div class="barra"><i style="width:' + (puntos(g) / maxPts * 100) + '%"></i></div><b>' + puntos(g) + '</b></div>';
+        }).join('');
+
+        var tabla = rank.map(function (g, i) {
+          return '<tr><td class="b">' + (i + 1) + '</td><td class="b">' + esc(g.nombre) + '</td><td>' + puntos(g) + '</td><td>' + mmss(tiempo(g)) + '</td><td>' + completados(g) + '/' + N + '</td><td>' + (completados(g) ? mmss(tiempo(g) / completados(g)) : '—') + '</td></tr>';
+        }).join('');
+
+        $('stat-grid').innerHTML =
+          '<div class="panel"><h3>⭐ Quién va ganando</h3>' +
+            '<div class="destacado"><div class="ic">🥇</div><div><b>' + esc(lider.nombre) + '</b><span>' + puntos(lider) + ' puntos' + (ventaja > 0 ? ' · ventaja de ' + ventaja + ' pts' : '') + '</span></div></div>' +
+            '<div class="lista">' + rank.slice(1, 4).map(function (g, i) { return filaRank(g, i + 1, puntos(g) + ' pts', '', ''); }).join('') + '</div></div>' +
+
+          panelLlegada() +
+
+          '<div class="panel"><h3>⚡ Más rápidos (tiempo promedio por reto)</h3><div class="lista">' +
+            rapidos.slice(0, 4).map(function (x, i) { return filaRank(x.g, i, mmss(x.prom), completados(x.g) + ' retos completados', i === 0 ? 'Más rápido' : ''); }).join('') + '</div></div>' +
+
+          '<div class="panel"><h3>🔥 A punto de ganar</h3><div class="lista">' +
+            cercanos.map(function (g, i) {
+              var faltan = N - completados(g);
+              return filaRank(g, i, puntos(g) + ' pts', terminado(g) ? 'Terminó todos los retos' : (faltan === 1 ? 'Le falta 1 reto' : 'Le faltan ' + faltan + ' retos'), faltan === 1 && !terminado(g) ? '¡Recta final!' : '');
+            }).join('') + '</div></div>' +
+
+          '<div class="panel"><h3>📊 Puntos por grupo</h3><div class="bars">' + barras + '</div></div>' +
+
+          '<div class="panel span2"><h3>⏱ Récord de tiempo en cada reto</h3><div class="tabla-scroll"><table><thead><tr><th>Reto</th><th>Grupo más rápido</th><th>Tiempo</th><th>Puntos</th></tr></thead><tbody>' + records + '</tbody></table></div></div>' +
+
+          '<div class="panel span2"><h3>📋 Tabla general</h3><div class="tabla-scroll"><table><thead><tr><th>#</th><th>Grupo</th><th>Puntos</th><th>Tiempo total</th><th>Retos</th><th>Promedio por reto</th></tr></thead><tbody>' + tabla + '</tbody></table></div></div>';
+      }
+
+      function renderGanadores() {
+        var rank = ranking();
+        $('cand').textContent = estado === 'finalizada' ? '' : '🔒';
+        if (estado !== 'finalizada') {
+          var part = participantes();
+          var avance = part.length ? Math.round(part.reduce(function (a, g) { return a + completados(g); }, 0) / (part.length * N) * 100) : 0;
+          $('ganadores').innerHTML =
+            '<div class="panel"><div class="bloqueado"><div class="cand-big"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></div>' +
+            '<h3>Los clasificados se revelan al final</h3><p>Se mostrarán cuando todos los grupos terminen los ' + N + ' retos, o cuando presiones FINALIZAR.</p>' +
+            '<div class="barra"><i style="width:' + avance + '%"></i></div><p><b>' + avance + '%</b> de avance general</p></div></div>' +
+            '<div style="margin-top:14px">' + panelLlegada() + '</div>';
+          return;
+        }
+        var t = rank.slice(0, 3);
+        function pod(g, cls, med) { return g ? '<div class="pod ' + cls + '"><div class="med">' + med + '</div><b>' + esc(g.nombre) + '</b><span>' + puntos(g) + ' pts · ' + mmss(tiempo(g)) + '</span></div>' : '<div></div>'; }
+        var tabla = rank.map(function (g, i) {
+          var clas = i < CLASIFICAN ? '<span class="tag-clas">✅ Clasifica</span>' : '';
+          return '<tr><td class="b">' + (i + 1) + '</td><td class="b">' + esc(g.nombre) + clas + '</td><td>' + puntos(g) + '</td><td>' + (terminado(g) ? mmss(tiempo(g)) : '—') + '</td></tr>';
+        }).join('');
+        $('ganadores').innerHTML =
+          '<div class="panel"><h3 style="text-align:center">🏆 Resultados de Desafío 360</h3>' +
+          '<div class="podio">' + pod(t[1], 'p2', '🥈') + pod(t[0], 'p1', '🥇') + pod(t[2], 'p3', '🥉') + '</div>' +
+          '<p style="text-align:center;font-weight:800;margin:6px 0 10px">Clasifican los primeros ' + CLASIFICAN + ' equipos</p>' +
+          '<div class="tabla-scroll"><table><thead><tr><th>Puesto</th><th>Grupo</th><th>Puntos</th><th>Tiempo total</th></tr></thead><tbody>' + tabla + '</tbody></table></div>' +
+          '<p style="font-size:0.7rem;color:var(--texto-suave);margin:10px 0 0">En caso de empate en puntos, gana el grupo que terminó en menor tiempo (desde el inicio común, sin contar pausas).</p></div>' +
+          '<div style="margin-top:14px">' + panelLlegada() + '</div>';
+      }
+
+      function render() {
+        renderControl();
+        renderKpis();
+        $('cand').textContent = estado === 'finalizada' ? '' : '🔒';
+        if (vistaActual === 'avance') renderAvance();
+        else if (vistaActual === 'stats') renderStats();
+        else renderGanadores();
+      }
+
+      /* ---------- navegacion ---------- */
+      function cambiarVista(v) {
+        vistaActual = v;
+        Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (b) { b.classList.toggle('activa', b.dataset.v === v); });
+        $('v-avance').classList.toggle('activa', v === 'avance');
+        $('v-stats').classList.toggle('activa', v === 'stats');
+        $('v-ganadores').classList.toggle('activa', v === 'ganadores');
+        render();
+      }
+      $('tabs').addEventListener('click', function (e) {
+        var b = e.target.closest('.tab');
+        if (b) cambiarVista(b.dataset.v);
+      });
+      $('grid-grupos').addEventListener('click', function (e) {
+        var a = e.target.closest('[data-act]');
+        if (a) { accionGrupo(a.dataset.act, Number(a.dataset.id), Number(a.dataset.b)); return; }
+        var c = e.target.closest('.gcard');
+        if (!c) return;
+        var id = c.dataset.id;
+        abiertas[id] = !abiertas[id];
+        renderAvance();
+      });
+
+      /* ---------- arranque ---------- */
+      render();
+      refrescar();
+      setInterval(refrescar, 2000);
+      setInterval(renderControl, 1000);
+    })();
+  </script>
+</body>
+</html>

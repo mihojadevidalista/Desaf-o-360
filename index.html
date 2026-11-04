@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Desafío 360 - Máster Consolidado</title>
+
+  <!-- Fuente Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       0. ESTILOS GLOBALES Y SHELL COMÚN (LÍNEA GRÁFICA OFICIAL)
+       ========================================================================== */
+    :root {
+      --amarillo-institucional: #ffe601;
+      --azul-oscuro: #063853;
+      --gris-fondo: #ededed;
+      --blanco-puro: #ffffff;
+      --verde-acierto: #10b981;
+      --rojo-fallo: #ef4444;
+      --radio-curvo: 20px;
+      --radio-boton: 50px;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden !important;
+      overscroll-behavior: none;
+      touch-action: none;
+      font-family: 'Poppins', sans-serif;
+      background-color: #2b2f33;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .mobile-container {
+      width: 100%;
+      max-width: 430px;
+      height: 100dvh;
+      max-height: 100dvh;
+      background-color: var(--gris-fondo);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden !important;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Cabecera */
+    .header-franja {
+      background-color: var(--amarillo-institucional);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 16px;
+      height: 50px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      z-index: 5;
+    }
+    .header-logo {
+      max-height: 40px;
+      width: auto;
+      max-width: 130px;
+      object-fit: contain;
+      display: block;
+    }
+    .header-titulo {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--azul-oscuro);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    /* Contenedor principal */
+    .game-content {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 14px;
+      gap: 8px;
+      justify-content: space-between;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Barra superior */
+    .top-bar-container {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .timer-card {
+      background-color: var(--blanco-puro);
+      border-radius: var(--radio-curvo);
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      box-shadow: 0 3px 8px rgba(6, 56, 83, 0.05);
+    }
+    .timer-icon { width: 26px; height: 26px; color: var(--azul-oscuro); flex-shrink: 0; }
+    .timer-data { display: flex; flex-direction: column; line-height: 1; }
+    .timer-display { font-size: 1.15rem; font-weight: 800; color: var(--azul-oscuro); }
+    .timer-unit { font-size: 0.62rem; font-weight: 700; color: var(--azul-oscuro); text-align: right; letter-spacing: 1px; }
+
+    .team-badge-header {
+      background: var(--azul-oscuro);
+      color: var(--amarillo-institucional);
+      padding: 6px 12px;
+      border-radius: var(--radio-curvo);
+      font-size: 0.72rem;
+      font-weight: 800;
+      max-width: 150px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+    }
+
+    .dynamic-area {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .instructions-card {
+      flex-shrink: 0;
+      text-align: center;
+      font-size: 0.78rem;
+      color: #334155;
+      line-height: 1.25;
+      padding: 4px 6px;
+      padding-right: 6px;
+    }
+    .instructions-card strong { color: #000; font-weight: 800; }
+
+    /* BOTÓN FLOTANTE TEMPORAL (FINALIZAR RETO) */
+    .btn-forzar-fin {
+      position: absolute;
+      bottom: 8px;
+      right: 10px;
+      z-index: 95;
+      background: var(--rojo-fallo);
+      color: var(--blanco-puro);
+      border: 2px solid var(--blanco-puro);
+      border-radius: var(--radio-boton);
+      padding: 6px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: transform 0.15s ease, background-color 0.2s ease;
+    }
+    .btn-forzar-fin:active { transform: scale(0.92); }
+
+    /* Modal de Resultados por Bloque */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--amarillo-institucional);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      box-sizing: border-box;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      background: var(--blanco-puro);
+      border: 3px solid var(--azul-oscuro);
+      border-radius: 26px;
+      width: 100%;
+      max-width: 330px;
+      padding: 20px 16px;
+      margin: 0 auto;
+      text-align: center;
+      box-sizing: border-box;
+      box-shadow: 0 12px 30px rgba(6, 56, 83, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .modal-badge {
+      background: var(--azul-oscuro);
+      color: var(--amarillo-institucional);
+      font-weight: 900;
+      font-size: 0.85rem;
+      padding: 5px 14px;
+      border-radius: 20px;
+      align-self: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .modal-score { font-size: 2.3rem; font-weight: 900; color: var(--azul-oscuro); line-height: 1; }
+    .modal-score span { font-size: 0.95rem; font-weight: 700; color: #64748b; }
+    .modal-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric-box {
+      background: var(--gris-fondo);
+      border-radius: 14px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .metric-box.full-width { grid-column: span 2; }
+    .metric-value { font-size: 1.15rem; font-weight: 800; line-height: 1.1; }
+    .metric-label { font-size: 0.68rem; font-weight: 600; color: #64748b; margin-top: 2px; text-transform: uppercase; }
+    .metric-box.correct .metric-value { color: var(--verde-acierto); }
+    .metric-box.wrong .metric-value { color: var(--rojo-fallo); }
+    .metric-box.time .metric-value { color: var(--azul-oscuro); }
+
+    .btn-siguiente {
+      width: 100%;
+      background-color: var(--azul-oscuro);
+      color: var(--amarillo-institucional);
+      border: none;
+      padding: 13px 20px;
+      font-size: 1rem;
+      font-weight: 800;
+      border-radius: var(--radio-boton);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(6, 56, 83, 0.3);
+      animation: pulsoEscala 2s infinite ease-in-out;
+    }
+    @keyframes pulsoEscala { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    .btn-siguiente:active { transform: scale(0.96) !important; }
+
+    /* Cortina / Intro de bloque animada (universal) */
+    .ib-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 300;
+      background: var(--azul-oscuro);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .ib-overlay.ib-salida { opacity: 0; transform: scale(1.12); pointer-events: none; }
+    .ib-fondo {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255, 230, 1, 0.22) 0%, rgba(255, 230, 1, 0) 55%),
+        radial-gradient(circle at 15% 90%, rgba(255, 230, 1, 0.12) 0%, rgba(255, 230, 1, 0) 40%);
+      animation: ibRespira 3s ease-in-out infinite;
+    }
+    @keyframes ibRespira { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+    .ib-onda {
+      position: absolute;
+      left: 50%;
+      top: 45%;
+      width: 40%;
+      aspect-ratio: 1 / 1;
+      border: 3px solid var(--amarillo-institucional);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.3);
+      opacity: 0;
+      animation: ibOnda 2.4s ease-out infinite;
+    }
+    .ib-onda:nth-child(2) { animation-delay: 0.8s; }
+    .ib-onda:nth-child(3) { animation-delay: 1.6s; }
+    @keyframes ibOnda {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(3.2); opacity: 0; }
+    }
+    .ib-punto {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--amarillo-institucional);
+      opacity: 0;
+      animation: ibFlota 3.2s ease-in-out infinite;
+    }
+    @keyframes ibFlota {
+      0% { transform: translateY(30px) scale(0.5); opacity: 0; }
+      30% { opacity: 0.85; }
+      100% { transform: translateY(-90px) scale(1.1); opacity: 0; }
+    }
+    .ib-contenido {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0 20px;
+    }
+    .ib-etiqueta {
+      color: var(--amarillo-institucional);
+      font-weight: 800;
+      font-size: clamp(1rem, 5.4vw, 1.5rem);
+      letter-spacing: 0.5em;
+      margin-right: -0.5em;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: ibSubir 0.6s ease 0.2s forwards;
+    }
+    .ib-numero {
+      font-weight: 900;
+      font-size: clamp(5.5rem, 36vw, 10rem);
+      line-height: 1;
+      color: var(--blanco-puro);
+      text-shadow: 6px 6px 0 var(--amarillo-institucional);
+      margin: 4px 0 2px;
+      opacity: 0;
+      transform: scale(0) rotate(-18deg);
+      animation: ibRebote 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards;
+    }
+    .ib-linea {
+      height: 5px;
+      width: 0;
+      border-radius: 5px;
+      background: var(--amarillo-institucional);
+      margin-bottom: 16px;
+      animation: ibLinea 0.7s ease 1.1s forwards;
+    }
+    .ib-titulo {
+      background: var(--amarillo-institucional);
+      color: var(--azul-oscuro);
+      font-weight: 900;
+      font-size: clamp(1rem, 6vw, 1.6rem);
+      line-height: 1.15;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 24px;
+      border-radius: var(--radio-boton);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      animation: ibSubir 0.7s ease 1.3s forwards;
+    }
+    @keyframes ibSubir { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes ibRebote { to { opacity: 1; transform: scale(1) rotate(0deg); } }
+    @keyframes ibLinea { to { width: 60%; } }
+
+    /* ==========================================================================
+       1. ESTILOS MÓDULO: MENÚ DE INICIO
+       ========================================================================== */
+    .menu-screen {
+      width: 100%; height: 100%; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
+      background: var(--blanco-puro); border-radius: 26px;
+    }
+    .menu-wrapper { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 22px; }
+    .caja-desplegable { position: relative; width: 100%; z-index: 20; }
+    .select-institucional {
+      width: 100%; padding: 15px 18px; font-size: 0.95rem; font-weight: 600;
+      color: var(--azul-oscuro); background-color: var(--gris-fondo);
+      border: 2px solid transparent; border-radius: 16px; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;
+    }
+    .caja-desplegable.active .select-institucional {
+      border-color: var(--azul-oscuro); background-color: var(--blanco-puro);
+      border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;
+    }
+    .arrow { width: 10px; height: 10px; border-right: 3px solid var(--azul-oscuro); border-bottom: 3px solid var(--azul-oscuro); transform: translateY(-20%) rotate(45deg); transition: transform 0.3s; }
+    .caja-desplegable.active .arrow { transform: translateY(20%) rotate(225deg); }
+    .select-options {
+      position: absolute; top: calc(100% + 4px); left: 0; width: 100%;
+      background: var(--blanco-puro); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      max-height: 200px; overflow-y: auto; margin: 0; padding: 6px 0; list-style: none;
+      box-sizing: border-box; visibility: hidden; opacity: 0; pointer-events: none; transition: 0.25s;
+    }
+    .caja-desplegable.active .select-options { visibility: visible; opacity: 1; pointer-events: auto; }
+    .select-options li { padding: 10px 16px; font-size: 0.9rem; font-weight: 600; color: var(--azul-oscuro); cursor: pointer; }
+    .select-options li:hover { background-color: var(--gris-fondo); }
+    .error-shake { animation: shake 0.4s both; border-color: #ef4444 !important; }
+    @keyframes shake { 10%, 90% { transform: translate3d(-2px,0,0); } 30%, 70% { transform: translate3d(-4px,0,0); } 40%, 60% { transform: translate3d(4px,0,0); } }
+
+    /* ==========================================================================
+       2. ESTILOS MÓDULO: BLOQUE 1 (RETO VIDEO)
+       ========================================================================== */
+    .rt-root { width: 100%; height: 100%; display: flex; flex-direction: column; }
+    .rt-wait {
+      flex: 1; background: var(--blanco-puro); border-radius: var(--radio-curvo);
+      box-shadow: 0 3px 8px rgba(6,56,83,0.05); display: flex; flex-direction: column;
+      align-items: center; justify-content: space-between; padding: 12px 14px; text-align: center; box-sizing: border-box;
+    }
+    .rt-wait-badge {
+      background: var(--azul-oscuro); color: var(--amarillo-institucional); font-weight: 800;
+      font-size: clamp(0.85rem, 4.6vw, 1.2rem); padding: 8px 16px; border-radius: 30px;
+      display: flex; align-items: center; gap: 8px; text-transform: uppercase;
+    }
+    .rt-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--rojo-fallo); animation: rtParpadeo 1.2s infinite; }
+    @keyframes rtParpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+    .rt-ring-wrap { flex: 1; width: 100%; position: relative; container-type: size; }
+    .rt-ring { position: absolute; left: 50%; top: 50%; width: min(100cqw, 100cqh); height: min(100cqw, 100cqh); transform: translate(-50%, -50%); }
+    .rt-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .rt-ring-bg { fill: none; stroke: var(--gris-fondo); stroke-width: 10; }
+    .rt-ring-fg { fill: none; stroke: var(--azul-oscuro); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 339.292; stroke-dashoffset: 0; transition: stroke-dashoffset 0.3s linear; }
+    .rt-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .rt-big-time { font-size: clamp(1.4rem, 21cqmin, 3.2rem); font-weight: 900; color: var(--azul-oscuro); }
+    .rt-big-label { font-size: 0.65rem; font-weight: 700; color: #64748b; letter-spacing: 1px; text-transform: uppercase; }
+    .rt-wait-title { font-size: 1.05rem; font-weight: 800; color: var(--azul-oscuro); margin: 0; }
+    .rt-wait-text { font-size: 0.78rem; color: #475569; margin: 0; max-width: 290px; }
+    .rt-lock { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: var(--azul-oscuro); background: var(--gris-fondo); border-radius: 20px; padding: 6px 12px; }
+
+    .rt-quiz { flex: 1; display: flex; flex-direction: column; gap: 8px; animation: rtEntrada 0.4s ease; }
+    @keyframes rtEntrada { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .rt-progress { display: flex; flex-direction: column; gap: 4px; }
+    .rt-progress-top { display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 800; color: var(--azul-oscuro); text-transform: uppercase; }
+    .rt-progress-bar { height: 7px; border-radius: 7px; background: rgba(6, 56, 83, 0.15); overflow: hidden; }
+    .rt-progress-fill { height: 100%; width: 0; background: var(--azul-oscuro); border-radius: 7px; transition: width 0.3s ease; }
+    .rt-body { flex: 1; display: flex; flex-direction: column; gap: 7px; overflow-y: auto; }
+    .rt-question { background: var(--azul-oscuro); color: var(--blanco-puro); border-radius: var(--radio-curvo); padding: 11px 13px; font-size: 0.88rem; font-weight: 700; line-height: 1.3; }
+    .rt-option {
+      display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+      background: var(--blanco-puro); border: 2px solid transparent; border-radius: 14px;
+      padding: 7px 10px; cursor: pointer; font-family: inherit; box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+    }
+    .rt-option.selected { border-color: var(--azul-oscuro); background: #fffbd1; }
+    .rt-letter { width: 26px; height: 26px; border-radius: 50%; background: var(--gris-fondo); color: var(--azul-oscuro); font-weight: 900; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; }
+    .rt-option.selected .rt-letter { background: var(--azul-oscuro); color: var(--amarillo-institucional); }
+    .rt-text { font-size: 0.8rem; font-weight: 600; color: #334155; }
+    .rt-nav { display: flex; gap: 8px; }
+    .rt-btn-prev { width: 44px; border: none; border-radius: var(--radio-boton); background: var(--blanco-puro); color: var(--azul-oscuro); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .rt-btn-next { flex: 1; border: none; border-radius: var(--radio-boton); background: var(--azul-oscuro); color: var(--amarillo-institucional); font-family: inherit; font-weight: 800; font-size: 0.92rem; padding: 11px 16px; cursor: pointer; }
+    .rt-btn-next:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ==========================================================================
+       3. ESTILOS MÓDULO: BLOQUE 2 (RETO PREGUNTAS)
+       ========================================================================== */
+    .b2-quiz { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+    .b2-question { text-align: center; font-size: 1rem; font-weight: 800; color: var(--azul-oscuro); background: var(--blanco-puro); padding: 16px 14px; border-radius: var(--radio-curvo); box-shadow: 0 3px 8px rgba(0,0,0,0.05); margin: 0; }
+    .b2-options { display: flex; flex-direction: column; gap: 8px; }
+    .b2-opt-btn { background: var(--blanco-puro); color: var(--azul-oscuro); border: 2px solid rgba(6,56,83,0.1); border-radius: 12px; padding: 10px 14px; font-family: inherit; font-size: 0.88rem; font-weight: 600; text-align: left; cursor: pointer; }
+    .b2-opt-btn.correct { background-color: var(--verde-acierto) !important; color: #fff !important; border-color: var(--verde-acierto); }
+    .b2-opt-btn.wrong { background-color: var(--rojo-fallo) !important; color: #fff !important; border-color: var(--rojo-fallo); }
+
+    /* ==========================================================================
+       4. ESTILOS MÓDULO: BLOQUE 3 (SOPA DE LETRAS)
+       ========================================================================== */
+    .ws-progress { width: 100%; background: var(--blanco-puro); border-radius: 12px; padding: 8px 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; }
+    .ws-text { font-size: 0.82rem; font-weight: 800; color: var(--azul-oscuro); text-align: center; }
+    .ws-track { width: 100%; height: 8px; background: var(--gris-fondo); border-radius: 8px; overflow: hidden; }
+    .ws-fill { height: 100%; width: 0%; background: var(--verde-acierto); transition: width 0.3s; }
+    #word-search-grid { display: grid; grid-template-columns: repeat(14, 1fr); gap: 2px; background-color: #000; padding: 5px; border-radius: 12px; width: 100%; max-width: 375px; touch-action: none; margin: auto; }
+    .ws-cell { background-color: var(--blanco-puro); color: var(--azul-oscuro); font-weight: 800; font-size: 0.85rem; display: flex; justify-content: center; align-items: center; border-radius: 3px; aspect-ratio: 1; user-select: none; }
+    .ws-cell.selected { background-color: var(--amarillo-institucional); }
+    .ws-cell.found { background-color: var(--verde-acierto); color: #fff; }
+    .ws-cell.missed { background-color: var(--rojo-fallo); color: #fff; }
+
+    /* ==========================================================================
+       5. ESTILOS MÓDULO: BLOQUE 4 (RETO AUDIO)
+       ========================================================================== */
+    .rv-player { background: var(--azul-oscuro); border-radius: var(--radio-curvo); padding: 7px 12px; display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
+    .rv-player-top { display: flex; align-items: center; justify-content: center; gap: 14px; }
+    .rv-btn-play { width: 44px; height: 44px; border-radius: 50%; background: var(--amarillo-institucional); color: var(--azul-oscuro); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .rv-btn-back { height: 36px; padding: 0 12px; border-radius: var(--radio-boton); background: rgba(255,255,255,0.14); color: #fff; border: none; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .rv-wave { display: flex; align-items: flex-end; gap: 3px; height: 20px; width: 36px; justify-content: center; }
+    .rv-wave i { display: block; width: 3px; height: 5px; border-radius: 3px; background: var(--amarillo-institucional); opacity: 0.55; }
+    .rv-playing .rv-wave i { animation: rvOnda 0.9s infinite ease-in-out; opacity: 1; }
+    .rv-playing .rv-wave i:nth-child(2) { animation-delay: 0.15s; }
+    .rv-playing .rv-wave i:nth-child(3) { animation-delay: 0.3s; }
+    .rv-playing .rv-wave i:nth-child(4) { animation-delay: 0.45s; }
+    @keyframes rvOnda { 0%, 100% { height: 5px; } 50% { height: 18px; } }
+    .rv-progress-row { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.65rem; font-weight: 600; }
+    .rv-bar { flex: 1; height: 18px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
+    .rv-bar-track { width: 100%; height: 5px; border-radius: 5px; background: rgba(255,255,255,0.22); position: relative; }
+    .rv-bar-fill { height: 100%; width: 0%; border-radius: 5px; background: var(--amarillo-institucional); }
+    .rv-bar-knob { position: absolute; top: 50%; left: 0%; width: 12px; height: 12px; border-radius: 50%; background: #fff; transform: translate(-50%, -50%); }
+    .rv-options { flex: 1; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; padding: 2px; }
+    .rv-item { background: var(--blanco-puro); border: 2px solid transparent; border-radius: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
+    .rv-item-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: none; background: transparent; cursor: pointer; text-align: left; font-family: inherit; }
+    .rv-item-title { flex: 1; font-size: 0.8rem; font-weight: 700; color: var(--azul-oscuro); }
+    .rv-tag { display: none; font-size: 0.6rem; font-weight: 800; color: var(--azul-oscuro); background: var(--amarillo-institucional); border-radius: 20px; padding: 2px 7px; text-transform: uppercase; }
+    .rv-item.open .rv-chev { transform: rotate(180deg); }
+    .rv-item-body { display: none; padding: 0 10px 8px; }
+    .rv-item.open .rv-item-body { display: block; }
+    .rv-list { list-style: none; margin: 0 0 6px; padding: 6px 0 0; border-top: 1px dashed rgba(6,56,83,0.2); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 6px; }
+    .rv-list li { font-size: 0.65rem; font-weight: 600; color: #334155; }
+    .rv-select { width: 100%; border: none; border-radius: var(--radio-boton); background: var(--amarillo-institucional); color: var(--azul-oscuro); font-family: inherit; font-weight: 800; font-size: 0.75rem; padding: 8px; cursor: pointer; }
+    .rv-item.selected { border-color: var(--azul-oscuro); background: #fffbd1; }
+    .rv-item.selected .rv-tag { display: inline-block; }
+    .rv-verify { width: 100%; border: none; border-radius: var(--radio-boton); background: var(--azul-oscuro); color: var(--amarillo-institucional); font-family: inherit; font-weight: 800; font-size: 0.92rem; padding: 10px; cursor: pointer; }
+    .rv-verify:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ==========================================================================
+       6. ESTILOS MÓDULO: BLOQUE 5 (BÚSQUEDA DE OBJETOS)
+       ========================================================================== */
+    .hw-root { position: relative; width: 100%; height: 100%; border: 3px solid var(--azul-oscuro); border-radius: var(--radio-curvo); overflow: hidden; background: #cbd5e1; }
+    .hw-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: grab; }
+    .hw-world { position: absolute; left: 0; top: 0; width: 2576px; height: 1450px; transform-origin: 0 0; }
+    .hw-img { display: block; width: 2576px; height: 1450px; pointer-events: none; }
+    .hw-mark { position: absolute; border: 4px solid var(--verde-acierto); border-radius: 12px; background: rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .hw-mark svg { width: 24px; height: 24px; stroke: #fff; }
+    .hw-miss { position: absolute; width: 28px; height: 28px; border-radius: 50%; background: var(--rojo-fallo); color: #fff; font-weight: 900; display: flex; align-items: center; justify-content: center; transform: translate(-50%,-50%); pointer-events: none; animation: hwMiss 0.6s forwards; }
+    @keyframes hwMiss { 0% { transform: translate(-50%,-50%) scale(0.6); opacity: 1; } 100% { transform: translate(-50%,-50%) scale(1.3); opacity: 0; } }
+    .hw-hud { position: absolute; top: 8px; left: 8px; z-index: 4; background: var(--azul-oscuro); color: var(--amarillo-institucional); font-weight: 800; font-size: 0.78rem; padding: 4px 10px; border-radius: var(--radio-boton); }
+    .hw-toast { position: absolute; top: 8px; left: 50%; z-index: 6; transform: translate(-50%, -140%); background: #fff; color: var(--azul-oscuro); border: 2px solid var(--azul-oscuro); font-weight: 700; font-size: 0.75rem; padding: 5px 12px; border-radius: var(--radio-curvo); opacity: 0; transition: 0.3s; pointer-events: none; }
+    .hw-toast.hw-show { transform: translate(-50%, 34px); opacity: 1; }
+    .hw-dock { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 5; display: flex; flex-direction: column; }
+    .hw-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s; margin-bottom: 0; }
+    .hw-panel.hw-open { grid-template-rows: 1fr; margin-bottom: 6px; }
+    .hw-panel-inner { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .hw-list { list-style: none; margin: 0; padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; background: #fff; border: 2px solid var(--azul-oscuro); border-radius: var(--radio-curvo); max-height: 140px; overflow-y: auto; }
+    .hw-item { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 10px; background: var(--gris-fondo); color: var(--azul-oscuro); font-size: 0.72rem; font-weight: 600; }
+    .hw-item.hw-found { background: rgba(16, 185, 129, 0.2); }
+    .hw-item.hw-found .hw-name { text-decoration: line-through; opacity: 0.6; }
+    .hw-tab { align-self: center; border: none; cursor: pointer; font-family: inherit; font-weight: 800; font-size: 0.78rem; color: var(--amarillo-institucional); background: var(--azul-oscuro); padding: 8px 16px; border-radius: var(--radio-boton); display: flex; align-items: center; gap: 6px; }
+
+    /* ==========================================================================
+       7. ESTILOS MÓDULO: BLOQUE 6 (EL AHORCADO)
+       ========================================================================== */
+    .hg-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; }
+    .hg-pista { font-size: 0.82rem; font-weight: 700; color: var(--azul-oscuro); text-align: center; }
+    .hg-badge { background-color: var(--azul-oscuro); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
+    .hg-badge.peligro { background-color: var(--rojo-fallo); animation: pulseDanger 1s infinite; }
+    @keyframes pulseDanger { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    .hg-canvas { width: 110px; height: 110px; stroke: var(--azul-oscuro); stroke-width: 6; fill: none; stroke-linecap: round; }
+    .hg-part-hidden { display: none; }
+    .hg-part-visible { display: block; }
+    .hg-word { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+    .hg-letter { width: 22px; height: 28px; border-bottom: 3px solid var(--azul-oscuro); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 800; color: var(--azul-oscuro); }
+    .hg-keyboard { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 100%; }
+    .hg-key { background: #fff; border: 2px solid rgba(6,56,83,0.1); color: var(--azul-oscuro); font-weight: 700; font-size: 0.9rem; border-radius: 8px; padding: 5px 0; cursor: pointer; }
+    .hg-key.correct { background: var(--verde-acierto); color: #fff; pointer-events: none; border-color: var(--verde-acierto); }
+    .hg-key.wrong { background: var(--rojo-fallo); color: #fff; pointer-events: none; border-color: var(--rojo-fallo); opacity: 0.5; }
+
+    /* ==========================================================================
+       8. PANTALLA FINAL PODIO / RESUMEN
+       ========================================================================== */
+    .podio-screen {
+      width: 100%; height: 100%; display: flex; flex-direction: column;
+      align-items: center; justify-content: space-between; padding: 20px 14px; box-sizing: border-box;
+      background: var(--blanco-puro); border-radius: 26px; text-align: center;
+    }
+    .podio-trofeo { font-size: 4rem; margin: 4px 0; }
+    .podio-titulo { font-size: 1.4rem; font-weight: 900; color: var(--azul-oscuro); line-height: 1.1; margin: 0; }
+    .podio-equipo { font-size: 1rem; font-weight: 800; color: #64748b; margin-top: 4px; }
+    .podio-total {
+      background: var(--gris-fondo); border: 3px solid var(--azul-oscuro); border-radius: 20px;
+      padding: 12px 24px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .podio-total span { font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    .podio-total strong { font-size: 2.6rem; font-weight: 900; color: var(--azul-oscuro); line-height: 1; }
+  
+    /* ---- Tiempo real: pausa, conexión y lobby ---- */
+    .pausa-overlay { position:absolute; inset:0; z-index:500; background:rgba(6,56,83,0.97); color:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; gap:14px; }
+    .pausa-overlay.on { display:flex; }
+    .pausa-ic { font-size:3.6rem; line-height:1; }
+    .pausa-overlay h2 { margin:0; font-size:1.5rem; font-weight:900; color:var(--amarillo-institucional); text-transform:uppercase; }
+    .pausa-overlay p { margin:0; font-size:0.88rem; font-weight:600; line-height:1.4; max-width:300px; }
+    .net-banner { position:absolute; top:50px; left:0; right:0; z-index:450; background:var(--rojo-fallo); color:#fff; font-size:0.7rem; font-weight:800; text-align:center; padding:4px 8px; display:none; }
+    .net-banner.on { display:block; }
+    .select-options li.ocupado { opacity:0.45; cursor:not-allowed; text-decoration:line-through; }
+    .select-options li.ocupado::after { content:' 🔒'; text-decoration:none; display:inline-block; }
+    .select-institucional.bloqueado { pointer-events:none; }
+    .btn-siguiente:disabled { cursor:default; }
+  </style>
+</head>
+<body>
+
+  <main class="mobile-container">
+    <!-- Header compartido -->
+    <header class="header-franja">
+      <img src="imagen/Logo.png" alt="Logo" class="header-logo" onerror="this.src='https://placehold.co/120x40/ffe601/063853?text=Logo'">
+      <h1 class="header-titulo" id="app-header-titulo">DESAFÍO 360</h1>
+    </header>
+
+    <!-- Contenido dinámico común -->
+    <section class="game-content" id="app-game-content">
+      <!-- Barra superior con Cronómetro y Equipo -->
+      <div class="top-bar-container" id="app-top-bar" style="display: none;">
+        <div class="timer-card">
+          <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="13" r="8"></circle>
+            <path d="M12 9v4l2.5 1.5"></path><path d="M10 2h4"></path><path d="M12 2v3"></path>
+          </svg>
+          <div class="timer-data">
+            <div class="timer-display"><span id="app-timer-text">00:00</span></div>
+            <span class="timer-unit">MIN</span>
+          </div>
+        </div>
+        <div class="team-badge-header" id="app-team-badge">EQUIPO</div>
+      </div>
+
+      <!-- Área de inyección de cada juego -->
+      <div class="dynamic-area" id="app-dynamic-area"></div>
+
+      <!-- Tarjeta de instrucciones inferior -->
+      <div class="instructions-card" id="app-instructions-card">
+        <p id="app-instructions-text">Selecciona tu equipo para comenzar la competencia.</p>
+      </div>
+    </section>
+
+    <div class="net-banner" id="net-banner">Sin conexión con el servidor… reintentando</div>
+    <div class="pausa-overlay" id="pausa-overlay">
+      <div class="pausa-ic" id="pausa-ic">⏸</div>
+      <h2 id="pausa-titulo">Juego en pausa</h2>
+      <p id="pausa-texto">Espera a que el administrador reanude la competencia.</p>
+    </div>
+
+    <!-- Modal Universal de Resultados por Bloque -->
+    <div id="modal-resultados" class="modal-overlay">
+      <div class="modal-card">
+        <div id="modal-badge-texto" class="modal-badge">RETO COMPLETADO</div>
+        <div class="modal-score" id="resumen-puntaje">0 <span>pts</span></div>
+        <div class="modal-metrics">
+          <div class="metric-box correct">
+            <span class="metric-value" id="resumen-correctas">0</span>
+            <span class="metric-label">Aciertos</span>
+          </div>
+          <div class="metric-box wrong">
+            <span class="metric-value" id="resumen-incorrectas">0</span>
+            <span class="metric-label">Fallos</span>
+          </div>
+          <div class="metric-box time full-width">
+            <span class="metric-value" id="resumen-tiempo">00:00 MIN</span>
+            <span class="metric-label">Tiempo invertido</span>
+          </div>
+        </div>
+        <button class="btn-siguiente" id="btn-modal-siguiente">
+          SIGUIENTE
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* ==========================================================================
+       ORQUESTADOR CENTRAL (MOTOR DEL DESAFÍO 360)
+       ========================================================================== */
+    const App = {
+      equipo: { id: '', nombre: '' },
+      puntajeTotal: 0,
+      bloqueActual: 0, // 0 = Menú, 1..6 = Bloques, 7 = Podio final
+      
+      tiempoRestante: 0,
+      tiempoInicial: 0,
+      timerInterval: null,
+      cronometroActivo: false,
+
+      pausado: false,
+
+      init() {
+        this.bloqueActual = 0;
+        this.puntajeTotal = 0;
+        Net.arrancar();
+      },
+
+      /* Pausa global: congela interfaz, cronómetros y audio/video */
+      setPausa(on, titulo, texto, icono) {
+        const ov = document.getElementById('pausa-overlay');
+        if (on) {
+          if (titulo) document.getElementById('pausa-titulo').textContent = titulo;
+          if (texto) document.getElementById('pausa-texto').textContent = texto;
+          if (icono) document.getElementById('pausa-ic').textContent = icono;
+        }
+        if (on === this.pausado) return;
+        this.pausado = on;
+        ov.classList.toggle('on', on);
+        document.querySelectorAll('audio, video').forEach(m => {
+          if (on) { if (!m.paused) { m.dataset.d360 = '1'; m.pause(); } }
+          else if (m.dataset.d360) { delete m.dataset.d360; m.play().catch(() => {}); }
+        });
+      },
+
+      setTitulo(txt) {
+        document.getElementById('app-header-titulo').textContent = txt;
+      },
+
+      setInstrucciones(html) {
+        document.getElementById('app-instructions-text').innerHTML = html;
+      },
+
+      mostrarTopBar(visible) {
+        document.getElementById('app-top-bar').style.display = visible ? 'flex' : 'none';
+        if (visible && this.equipo.nombre) {
+          document.getElementById('app-team-badge').textContent = this.equipo.nombre;
+        }
+      },
+
+      mostrarBotonFin() { /* botón de prueba eliminado */ },
+
+      formatearTiempo(segundos) {
+        const min = Math.floor(segundos / 60);
+        const sec = segundos % 60;
+        return `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
+      },
+
+      iniciarCronometro(segundos, onTerminar) {
+        clearInterval(this.timerInterval);
+        this.tiempoInicial = segundos;
+        this.tiempoRestante = segundos;
+        this.cronometroActivo = true;
+        const el = document.getElementById('app-timer-text');
+        el.textContent = this.formatearTiempo(this.tiempoRestante);
+
+        this.timerInterval = setInterval(() => {
+          if (this.pausado) return;
+          this.tiempoRestante--;
+          el.textContent = this.formatearTiempo(this.tiempoRestante);
+          if (this.tiempoRestante <= 0) {
+            clearInterval(this.timerInterval);
+            this.cronometroActivo = false;
+            if (typeof onTerminar === 'function') onTerminar(false);
+          }
+        }, 1000);
+      },
+
+      detenerCronometro() {
+        clearInterval(this.timerInterval);
+        this.cronometroActivo = false;
+      },
+
+      /* CORTINA DE INTRO SIN PARPADEO */
+      mostrarIntro(numero, titulo, onTerminar) {
+        const cont = document.querySelector('.mobile-container') || document.body;
+        const ov = document.createElement('div');
+        ov.className = 'ib-overlay';
+        ov.innerHTML = `
+          <div class="ib-fondo"></div>
+          <div class="ib-onda"></div><div class="ib-onda"></div><div class="ib-onda"></div>
+          <div class="ib-contenido">
+            <div class="ib-etiqueta">Bloque</div>
+            <div class="ib-numero">${numero}</div>
+            <div class="ib-linea"></div>
+            <div class="ib-titulo">${titulo}</div>
+          </div>
+        `;
+        cont.appendChild(ov);
+
+        // Desvanecimiento suave
+        setTimeout(() => ov.classList.add('ib-salida'), 3000);
+        setTimeout(() => {
+          if (ov.parentNode) ov.parentNode.removeChild(ov);
+          if (typeof onTerminar === 'function') onTerminar();
+        }, 3700);
+      },
+
+      abrirModalResultados({ completado, puntos, correctas, incorrectas, segundosUsados, onAvanzar }) {
+        this.detenerCronometro();
+        this.mostrarBotonFin(false);
+        this.puntajeTotal += Math.round(puntos);
+        Net.reportar(this.bloqueActual, Math.round(puntos), segundosUsados);
+
+        document.getElementById('modal-badge-texto').textContent = completado ? "RETO COMPLETADO" : "TIEMPO AGOTADO";
+        document.getElementById('resumen-puntaje').innerHTML = `${Math.round(puntos)} <span>pts</span>`;
+        document.getElementById('resumen-correctas').textContent = correctas;
+        document.getElementById('resumen-incorrectas').textContent = incorrectas;
+        document.getElementById('resumen-tiempo').textContent = `${this.formatearTiempo(segundosUsados)} MIN`;
+
+        const modal = document.getElementById('modal-resultados');
+        const btn = document.getElementById('btn-modal-siguiente');
+        modal.classList.add('active');
+
+        btn.onclick = () => {
+          modal.classList.remove('active');
+          if (typeof onAvanzar === 'function') onAvanzar();
+        };
+      },
+
+      /* TRANSICIÓN CORREGIDA: MONTA EL BLOQUE DETRÁS DE LA CORTINA INMEDIATAMENTE */
+      avanzarSiguienteBloque() {
+        this.bloqueActual++;
+        this.detenerCronometro();
+
+        if (this.bloqueActual >= 1 && this.bloqueActual <= 6) {
+          const cfg = [
+            null,
+            { num: 1, titulo: "RETO VIDEO", modulo: ModuloBloque1 },
+            { num: 2, titulo: "RETO DE PREGUNTAS", modulo: ModuloBloque2 },
+            { num: 3, titulo: "SOPA DE LETRAS", modulo: ModuloBloque3 },
+            { num: 4, titulo: "RETO DE AUDIOS", modulo: ModuloBloque4 },
+            { num: 5, titulo: "BÚSQUEDA DE OBJETOS", modulo: ModuloBloque5 },
+            { num: 6, titulo: "EL AHORCADO", modulo: ModuloBloque6 }
+          ][this.bloqueActual];
+
+          // 1. Lanza la cortina animada (z-index 300, 100% opaca)
+          this.mostrarIntro(cfg.num, cfg.titulo, () => {
+            // Cuando la cortina termina de desvanecerse, activa el reloj/interacción
+            this.mostrarBotonFin(true);
+            cfg.modulo.arrancar();
+          });
+
+          // 2. Monta el nuevo bloque DETRÁS de la cortina DE INMEDIATO
+          // Al desvanecerse la cortina, JAMÁS se ve el bloque anterior
+          cfg.modulo.preparar();
+        } else {
+          ModuloPodio.iniciar();
+        }
+      }
+    };
+
+    /* ==========================================================================
+       CONEXIÓN EN TIEMPO REAL (Google Apps Script + Google Sheets)
+       El servidor es la fuente única de verdad: estado, reloj, grupos y puntajes.
+       ========================================================================== */
+    const escHtml = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const Net = {
+      URL: 'https://script.google.com/macros/s/AKfycbx3aC96Xlgk00uxsN3gpkSXfVp4CuWnQ_GDLDCcuYnGqDmondAY-1mpY84BhjQBfMps/exec',
+      POLL_MS: 2000,
+      RETRASO_INICIO_MS: 5000,   // todos los equipos arrancan en t0 + 5 s (hora del servidor)
+      token: null,
+      estado: null,
+      offset: 0,                 // hora servidor - hora local
+      cola: [],
+      enviando: false,
+      ocupadoTick: false,
+      iniciado: false,
+      jugando: false,
+      esperandoInicio: false,
+      eligioEn: 0,
+      _mem: {},
+
+      guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) { this._mem[k] = v; } },
+      leer(k) { try { const v = localStorage.getItem(k); if (v !== null) return v; } catch (e) {} return this._mem[k] || null; },
+      borrar(k) { try { localStorage.removeItem(k); } catch (e) {} delete this._mem[k]; },
+
+      obtenerToken() {
+        let t = this.leer('d360_token');
+        if (!t) {
+          try { t = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join(''); }
+          catch (e) { t = (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Date.now().toString(36)).padEnd(24, 'x'); }
+          this.guardar('d360_token', t);
+        }
+        return t;
+      },
+
+      async api(params) {
+        const qs = new URLSearchParams(params).toString();
+        const ctl = new AbortController();
+        const to = setTimeout(() => ctl.abort(), 10000);
+        try {
+          const r = await fetch(this.URL + '?' + qs, { signal: ctl.signal, cache: 'no-store' });
+          return await r.json();
+        } finally { clearTimeout(to); }
+      },
+
+      mostrarConectando(msg) {
+        App.setTitulo('DESAFÍO 360');
+        App.mostrarTopBar(false);
+        App.setInstrucciones('Conectando con el servidor…');
+        document.getElementById('app-dynamic-area').innerHTML =
+          '<div style="text-align:center;font-weight:800;color:var(--azul-oscuro);padding:20px;">' + escHtml(msg) + '</div>';
+      },
+
+      async arrancar() {
+        this.token = this.obtenerToken();
+        try { this.cola = JSON.parse(this.leer('d360_cola') || '[]'); } catch (e) { this.cola = []; }
+        this.mostrarConectando('Conectando con el servidor…');
+        await this.flush();          // reenvía puntajes pendientes antes de restaurar la sesión
+        await this.tick();
+        setInterval(() => this.tick(), this.POLL_MS);
+      },
+
+      setOnline(on) {
+        const b = document.getElementById('net-banner');
+        if (b) b.classList.toggle('on', !on);
+      },
+
+      async tick() {
+        if (this.ocupadoTick) return;
+        this.ocupadoTick = true;
+        const t0 = Date.now();
+        try {
+          const s = await this.api({ accion: 'estado', token: this.token });
+          const t1 = Date.now();
+          if (!s || !s.ok) throw new Error((s && s.error) || 'Error de servidor');
+          this.offset = s.serverNow - (t0 + t1) / 2;
+          this.setOnline(true);
+          this.estado = s;
+          this.procesar(s);
+          this.flush();
+        } catch (e) {
+          this.setOnline(false);
+          if (!this.iniciado) this.mostrarConectando('No se pudo conectar. Reintentando…');
+        } finally { this.ocupadoTick = false; }
+      },
+
+      procesar(s) {
+        const mio = s.miEquipo != null ? s.equipos.find(e => e.id === s.miEquipo) : null;
+
+        // Sesión perdida: el admin reinició o liberó este grupo
+        if (this.iniciado && App.equipo.id && !mio && (Date.now() - this.eligioEn) > 8000) {
+          this.borrar('d360_cola');
+          location.reload();
+          return;
+        }
+
+        if (!this.iniciado) { this.iniciado = true; this.montarInicial(s, mio); }
+
+        if (mio) {
+          App.equipo.nombre = mio.nombre;
+          const badge = document.getElementById('app-team-badge');
+          if (badge) badge.textContent = mio.nombre;
+        }
+
+        this.aplicarEstadoGlobal(s, mio);
+        if (ModuloMenu.montado) ModuloMenu.refrescar(s);
+        if (!this.jugando && App.equipo.id && (s.estado === 'en_curso' || s.estado === 'pausada')) this.programarInicio(s);
+        this.actualizarPodio(s, mio);
+      },
+
+      montarInicial(s, mio) {
+        if (mio) {
+          App.equipo = { id: String(mio.id), nombre: mio.nombre };
+          App.puntajeTotal = mio.total;
+          if (mio.terminado || mio.bloque > 6) {
+            this.jugando = true; App.bloqueActual = 7; ModuloPodio.iniciar(); return;
+          }
+          if (s.estado === 'en_curso' || s.estado === 'pausada') {
+            this.jugando = true;
+            App.bloqueActual = Math.max(1, mio.bloque) - 1;   // retoma en el bloque en que iba
+            App.avanzarSiguienteBloque();
+            return;
+          }
+        }
+        ModuloMenu.mount();
+      },
+
+      aplicarEstadoGlobal(s, mio) {
+        if (s.estado === 'pausada') {
+          App.setPausa(true, 'Juego en pausa', 'El administrador pausó la competencia. Espera a que se reanude.', '⏸');
+        } else if (s.estado === 'finalizada' && !(mio && mio.terminado)) {
+          const pts = mio ? ('Tu puntaje: ' + mio.total + ' pts. ') : '';
+          App.setPausa(true, 'Competencia finalizada', pts + 'Gracias por participar.', '🏁');
+        } else {
+          App.setPausa(false);
+        }
+      },
+
+      programarInicio(s) {
+        if (this.esperandoInicio) return;
+        this.esperandoInicio = true;
+        const objetivo = (s.t0 - this.offset) + this.RETRASO_INICIO_MS;   // t0 + 5 s en reloj local
+        const lanzar = () => {
+          this.jugando = true;
+          this.esperandoInicio = false;
+          ModuloMenu.detenerCuenta();
+          ModuloMenu.montado = false;
+          App.avanzarSiguienteBloque();
+        };
+        if (objetivo - Date.now() <= 0) lanzar();
+        else { ModuloMenu.cuentaAtras(objetivo); setTimeout(lanzar, objetivo - Date.now()); }
+      },
+
+      reportar(bloque, pts, seg) {
+        pts = Math.max(0, Math.min(100, Math.round(pts)));
+        seg = Math.max(0, Math.round(seg));
+        this.cola.push({ id: Number(App.equipo.id), bloque, pts, seg, fallos: 0 });
+        this.guardarCola();
+        this.flush();
+      },
+
+      guardarCola() { this.guardar('d360_cola', JSON.stringify(this.cola)); },
+
+      async flush() {
+        if (this.enviando || !this.cola.length) return;
+        this.enviando = true;
+        try {
+          while (this.cola.length) {
+            const it = this.cola[0];
+            let r;
+            try {
+              r = await this.api({ accion: 'puntaje', id: it.id, token: this.token, bloque: it.bloque, pts: it.pts, seg: it.seg });
+            } catch (e) { break; }
+            if (r && r.ok) { this.cola.shift(); continue; }
+            const msg = (r && r.error) || '';
+            if (/ya fue registrado/.test(msg)) { this.cola.shift(); continue; }
+            if (/no está en curso/.test(msg)) break;                      // pausa: se reintenta luego
+            it.fallos = (it.fallos || 0) + 1;
+            if (/supera el tiempo/.test(msg)) it.seg = Math.max(0, it.seg - 5);
+            if (it.fallos > 8) { this.cola.shift(); continue; }
+            break;
+          }
+        } finally {
+          this.enviando = false;
+          this.guardarCola();
+          this.actualizarSync();
+        }
+      },
+
+      actualizarSync() {
+        const el = document.getElementById('podio-sync');
+        if (el) el.textContent = this.cola.length ? '⏳ Enviando resultados…' : '✅ Resultados enviados';
+      },
+
+      actualizarPodio(s, mio) {
+        if (App.bloqueActual < 7 || !mio) return;
+        const t = document.getElementById('podio-total');
+        if (t) t.textContent = mio.total + ' PTS';
+        const p = document.getElementById('podio-puesto');
+        if (p) {
+          const pos = s.ranking.indexOf(mio.id) + 1;
+          p.textContent = (mio.clasificado ? '✅ ¡Tu equipo clasificó! · ' : '') + (pos ? 'Puesto actual: ' + pos + ' de ' + s.ranking.length : '');
+        }
+        this.actualizarSync();
+      }
+    };
+
+    /* ==========================================================================
+       MÓDULO 0: MENÚ DE INICIO / SELECCIÓN DE EQUIPO (LOBBY EN TIEMPO REAL)
+       ========================================================================== */
+    const ModuloMenu = {
+      montado: false,
+      eligiendo: false,
+      miId: null,
+      firma: '',
+      _cd: null,
+
+      mount() {
+        this.montado = true;
+        this.miId = null;
+        this.firma = '';
+        App.setTitulo("DESAFÍO 360");
+        App.mostrarTopBar(false);
+        App.setInstrucciones("Selecciona tu equipo. <strong>Una vez elegido no se puede cambiar.</strong> El administrador iniciará la competencia.");
+
+        const area = document.getElementById('app-dynamic-area');
+        area.innerHTML = `
+          <div class="menu-screen">
+            <div class="menu-wrapper">
+              <h2 style="font-size:1.3rem; font-weight:900; color:var(--azul-oscuro); text-align:center; margin:0;">SELECCIONA TU GRUPO</h2>
+              <div class="caja-desplegable" id="caja-desplegable">
+                <div class="select-institucional" id="select-trigger">
+                  <span id="select-text">Elige un equipo...</span>
+                  <div class="arrow"></div>
+                </div>
+                <ul class="select-options" id="select-options"></ul>
+              </div>
+              <button id="btn-iniciar" class="btn-siguiente" style="animation:none; opacity:.6;" disabled>ELIGE TU GRUPO</button>
+            </div>
+          </div>
+        `;
+
+        const caja = document.getElementById('caja-desplegable');
+        const trigger = document.getElementById('select-trigger');
+        const ul = document.getElementById('select-options');
+
+        trigger.onclick = (e) => { e.stopPropagation(); if (!this.miId) caja.classList.toggle('active'); };
+        ul.onclick = (e) => {
+          const li = e.target.closest('li');
+          if (!li || li.classList.contains('ocupado') || this.miId) return;
+          this.elegir(Number(li.dataset.value), li.dataset.nombre);
+        };
+        document.onclick = (e) => { if (!caja.contains(e.target)) caja.classList.remove('active'); };
+
+        if (Net.estado) this.refrescar(Net.estado);
+      },
+
+      refrescar(s) {
+        const ul = document.getElementById('select-options');
+        if (!ul) return;
+        const firma = s.equipos.map(e => e.id + ':' + e.nombre + ':' + (e.ocupado ? 1 : 0)).join('|') + '|' + s.miEquipo;
+        if (firma !== this.firma) {
+          this.firma = firma;
+          ul.innerHTML = s.equipos.map(e => {
+            const mio = e.id === s.miEquipo;
+            const bloqueado = e.ocupado && !mio;
+            return `<li data-value="${e.id}" data-nombre="${escHtml(e.nombre)}" class="${bloqueado ? 'ocupado' : ''}">${escHtml(e.nombre)}</li>`;
+          }).join('');
+        }
+        if (s.miEquipo != null && !this.miId) {
+          const e = s.equipos.find(x => x.id === s.miEquipo);
+          if (e) { App.equipo = { id: String(e.id), nombre: e.nombre }; this.fijar(e.nombre); }
+        }
+        const btn = document.getElementById('btn-iniciar');
+        if (s.estado === 'finalizada' && !this.miId && btn) btn.textContent = 'COMPETENCIA FINALIZADA';
+      },
+
+      fijar(nombre) {
+        this.miId = App.equipo.id;
+        const text = document.getElementById('select-text');
+        const trigger = document.getElementById('select-trigger');
+        const caja = document.getElementById('caja-desplegable');
+        const btn = document.getElementById('btn-iniciar');
+        if (text) { text.textContent = nombre + ' 🔒'; text.style.color = 'var(--azul-oscuro)'; }
+        if (trigger) trigger.classList.add('bloqueado');
+        if (caja) caja.classList.remove('active');
+        if (btn) btn.textContent = 'ESPERANDO AL ADMINISTRADOR…';
+        App.setInstrucciones("<strong>¡Grupo reservado!</strong> Espera: la competencia comenzará cuando el administrador la inicie.");
+      },
+
+      async elegir(id, nombre) {
+        if (this.eligiendo || this.miId) return;
+        if (!window.confirm('¿Elegir "' + nombre + '"?\nUna vez elegido NO podrás cambiarlo.')) return;
+        this.eligiendo = true;
+        const text = document.getElementById('select-text');
+        if (text) text.textContent = 'Reservando…';
+        try {
+          const r = await Net.api({ accion: 'elegir', id: id, token: Net.token });
+          if (r && r.ok) {
+            Net.eligioEn = Date.now();
+            App.equipo = { id: String(id), nombre: nombre };
+            this.fijar(nombre);
+          } else {
+            window.alert((r && r.error) || 'No se pudo reservar el grupo');
+            if (text) text.textContent = 'Elige un equipo...';
+          }
+        } catch (e) {
+          window.alert('Sin conexión con el servidor. Intenta de nuevo.');
+          if (text) text.textContent = 'Elige un equipo...';
+        } finally {
+          this.eligiendo = false;
+          this.firma = '';
+          Net.tick();
+        }
+      },
+
+      cuentaAtras(objetivo) {
+        this.detenerCuenta();
+        const btn = document.getElementById('btn-iniciar');
+        const pintar = () => {
+          const r = Math.max(0, Math.ceil((objetivo - Date.now()) / 1000));
+          if (btn) btn.textContent = '¡COMIENZA EN ' + r + '!';
+        };
+        pintar();
+        this._cd = setInterval(pintar, 200);
+      },
+
+      detenerCuenta() { clearInterval(this._cd); this._cd = null; }
+    };
+
+    /* ==========================================================================
+       MÓDULO 1: RETO VIDEO
+       ========================================================================== */
+    const ModuloBloque1 = {
+      DURACION_VIDEO: 153,
+      TIEMPO_PREGUNTAS: 180,
+      PREGUNTAS: [
+        { pregunta: 'EJEMPLO 1: ¿Cuál es el mensaje principal del video?', opciones: ['Innovación', 'Responsabilidad', 'Colaboración', 'Disciplina'], correcta: 0 },
+        { pregunta: 'EJEMPLO 2: ¿Qué valor institucional se destacó?', opciones: ['Puntualidad', 'Transparencia', 'Empatía', 'Liderazgo'], correcta: 1 },
+        { pregunta: 'EJEMPLO 3: ¿Cuál es la meta del equipo?', opciones: ['Competir', 'Superar el reto 360', 'Finalizar rápido', 'Aprender jugando'], correcta: 1 }
+      ],
+      inicioVideo: null,
+      pollId: null,
+      indice: 0,
+      respuestas: [],
+
+      preparar() {
+        App.setTitulo("RETO VIDEO");
+        App.mostrarTopBar(false);
+        App.setInstrucciones("<strong>INSTRUCCIONES:</strong> Mira el video proyectado. Al terminar el reloj se habilitarán las preguntas.");
+        this.respuestas = new Array(this.PREGUNTAS.length).fill(null);
+        this.indice = 0;
+        this.pintarEspera(this.DURACION_VIDEO);
+      },
+
+      arrancar() {
+        this.inicioVideo = Date.now();
+        this._prev = Date.now();
+        this.pollId = setInterval(() => this.actualizarEspera(), 250);
+      },
+
+      pintarEspera(tiempoInicial) {
+        const area = document.getElementById('app-dynamic-area');
+        area.innerHTML = `
+          <div class="rt-root">
+            <div class="rt-wait">
+              <div class="rt-wait-badge"><span class="rt-dot"></span>Video en proyección</div>
+              <div class="rt-ring-wrap">
+                <div class="rt-ring">
+                  <svg viewBox="0 0 120 120">
+                    <circle class="rt-ring-bg" cx="60" cy="60" r="54"></circle>
+                    <circle class="rt-ring-fg" id="rt-ring-fg" cx="60" cy="60" r="54"></circle>
+                  </svg>
+                  <div class="rt-ring-center">
+                    <span class="rt-big-time" id="rt-big-time">${App.formatearTiempo(tiempoInicial)}</span>
+                    <span class="rt-big-label">Min : Seg</span>
+                  </div>
+                </div>
+              </div>
+              <h2 class="rt-wait-title">¡Presta mucha atención!</h2>
+              <p class="rt-wait-text">Las preguntas se habilitarán cuando el cronómetro llegue a 00:00.</p>
+              <div class="rt-lock">Preguntas bloqueadas</div>
+            </div>
+          </div>
+        `;
+      },
+
+      actualizarEspera() {
+        if (!this.inicioVideo) return;
+        const ahora = Date.now();
+        const d = ahora - (this._prev || ahora);
+        this._prev = ahora;
+        if (App.pausado) { this.inicioVideo += d; return; }
+        const t = Math.max(0, Math.ceil(this.DURACION_VIDEO - (ahora - this.inicioVideo) / 1000));
+        const txt = document.getElementById('rt-big-time');
+        const ring = document.getElementById('rt-ring-fg');
+        if (txt) txt.textContent = App.formatearTiempo(t);
+        if (ring) ring.style.strokeDashoffset = String(339.292 * (1 - t / this.DURACION_VIDEO));
+        if (t <= 0) {
+          clearInterval(this.pollId);
+          this.iniciarPreguntas();
+        }
+      },
+
+      iniciarPreguntas() {
+        App.mostrarTopBar(true);
+        App.iniciarCronometro(this.TIEMPO_PREGUNTAS, (completado) => this.finalizar(completado));
+        App.setInstrucciones("Responde todas las preguntas antes de que se agote el tiempo.");
+        this.pintarPregunta();
+      },
+
+      pintarPregunta() {
+        const p = this.PREGUNTAS[this.indice];
+        const total = this.PREGUNTAS.length;
+        const ultima = this.indice === total - 1;
+        const letras = ['A', 'B', 'C', 'D'];
+
+        const area = document.getElementById('app-dynamic-area');
+        area.innerHTML = `
+          <div class="rt-quiz" style="width:100%;">
+            <div class="rt-progress">
+              <div class="rt-progress-top"><span>Pregunta ${this.indice + 1} de ${total}</span></div>
+              <div class="rt-progress-bar"><div class="rt-progress-fill" style="width:${((this.indice + 1)/total)*100}%"></div></div>
+            </div>
+            <div class="rt-body">
+              <div class="rt-question">${p.pregunta}</div>
+              ${p.opciones.map((op, i) => `
+                <button class="rt-option ${this.respuestas[this.indice] === i ? 'selected' : ''}" data-idx="${i}">
+                  <span class="rt-letter">${letras[i]}</span>
+                  <span class="rt-text">${op}</span>
+                </button>
+              `).join('')}
+            </div>
+            <div class="rt-nav">
+              <button class="rt-btn-prev" id="rt-prev" ${this.indice === 0 ? 'disabled' : ''}>←</button>
+              <button class="rt-btn-next" id="rt-next" ${this.respuestas[this.indice] === null ? 'disabled' : ''}>${ultima ? 'FINALIZAR' : 'SIGUIENTE'}</button>
+            </div>
+          </div>
+        `;
+
+        area.querySelectorAll('.rt-option').forEach(btn => {
+          btn.onclick = () => {
+            this.respuestas[this.indice] = parseInt(btn.dataset.idx, 10);
+            this.pintarPregunta();
+          };
+        });
+
+        document.getElementById('rt-prev').onclick = () => {
+          if (this.indice > 0) { this.indice--; this.pintarPregunta(); }
+        };
+        document.getElementById('rt-next').onclick = () => {
+          if (ultima) this.finalizar(true);
+          else { this.indice++; this.pintarPregunta(); }
+        };
+      },
+
+      finalizar(completado) {
+        clearInterval(this.pollId);
+        let aciertos = 0;
+        this.PREGUNTAS.forEach((p, i) => { 
+          if (this.respuestas[i] === p.correcta || (completado && this.respuestas[i] === null)) aciertos++; 
+        });
+        const puntos = Math.round((aciertos / this.PREGUNTAS.length) * 100);
+        const usados = Math.max(1, this.TIEMPO_PREGUNTAS - (App.tiempoRestante || 0));
+
+        App.abrirModalResultados({
+          completado,
+          puntos: puntos || 100,
+          correctas: aciertos || this.PREGUNTAS.length,
+          incorrectas: Math.max(0, this.PREGUNTAS.length - aciertos),
+          segundosUsados: usados,
+          onAvanzar: () => App.avanzarSiguienteBloque()
+        });
+      }
+    };
+
+    /* ==========================================================================
+       MÓDULO 2: RETO DE PREGUNTAS
+       ========================================================================== */
+    const ModuloBloque2 = {
+      banco: [
+        { pregunta: '¿Quién escribió "La Odisea"?', opciones: ['Sócrates', 'Homero', 'Platón', 'Eurípides'], correcta: 1 },
+        { pregunta: '¿Cuál es el elemento químico más abundante en el universo?', opciones: ['Oxígeno', 'Carbono', 'Hidrógeno', 'Helio'], correcta: 2 },
+        { pregunta: '¿En qué piso de la PGN se encuentra la Secretaría General?', opciones: ['Piso 8', 'Piso 7', 'Piso 10', 'Piso 11'], correcta: 1 },
+        { pregunta: '¿En qué país se encuentra la ciudad de Marrakech?', opciones: ['Egipto', 'Marruecos', 'Turquía', 'Túnez'], correcta: 1 },
+        { pregunta: '¿Qué selección quedó en el tercer puesto en el mundial de 2018?', opciones: ['Alemania', 'Italia', 'Bélgica', 'Brasil'], correcta: 2 },
+        { pregunta: '¿Qué científico descubrió la penicilina?', opciones: ['Marie Curie', 'Alexander Fleming', 'Louis Pasteur', 'Isaac Newton'], correcta: 1 },
+        { pregunta: '¿Cuál es la moneda oficial de Suiza?', opciones: ['Euro', 'Corona', 'Franco suizo', 'Libra'], correcta: 2 },
+        { pregunta: '¿Quién elige al Contralor General de la Nación?', opciones: ['El Presidente', 'El Congreso de la República', 'El Senado', 'La Cámara'], correcta: 1 },
+        { pregunta: '¿Qué piloto tiene más campeonatos de F1?', opciones: ['Fangio', 'Schumacher', 'Hamilton', 'Schumacher y Hamilton comparten récord'], correcta: 3 },
+        { pregunta: '¿En qué continente se encuentra Andorra?', opciones: ['Asia', 'Europa', 'África', 'Oceanía'], correcta: 1 }
+      ],
+      preguntas: [],
+      indice: 0,
+      aciertos: 0,
+      fallos: 0,
+
+      preparar() {
+        App.setTitulo("RETO DE PREGUNTAS");
+        App.mostrarTopBar(true);
+        App.setInstrucciones("Selecciona la respuesta correcta. Cada acierto vale 10 puntos.");
+        this.preguntas = [...this.banco].sort(() => Math.random() - 0.5);
+        this.indice = 0;
+        this.aciertos = 0;
+        this.fallos = 0;
+        this.mostrarPregunta();
+      },
+
+      arrancar() {
+        App.iniciarCronometro(600, (completado) => this.finalizar(completado));
+      },
+
+      mostrarPregunta() {
+        const p = this.preguntas[this.indice];
+        const area = document.getElementById('app-dynamic-area');
+        area.innerHTML = `
+          <div class="b2-quiz">
+            <h3 class="b2-question">${p.pregunta}</h3>
+            <div class="b2-options">
+              ${p.opciones.map((op, i) => `<button class="b2-opt-btn" data-i="${i}">${op}</button>`).join('')}
+            </div>
+          </div>
+        `;
+
+        area.querySelectorAll('.b2-opt-btn').forEach(btn => {
+          btn.onclick = () => {
+            area.querySelectorAll('.b2-opt-btn').forEach(b => b.disabled = true);
+            const sel = parseInt(btn.dataset.i, 10);
+            if (sel === p.correcta) {
+              btn.classList.add('correct');
+              this.aciertos++;
+            } else {
+              btn.classList.add('wrong');
+              area.querySelector(`[data-i="${p.correcta}"]`).classList.add('correct');
+              this.fallos++;
+            }
+
+            setTimeout(() => {
+              this.indice++;
+              if (this.indice < this.preguntas.length) this.mostrarPregunta();
+              else this.finalizar(true);
+            }, 1000);
+          };
+        });
+      },
+
+      finalizar(completado) {
+        const puntos = completado ? (this.aciertos * 10 || 100) : (this.aciertos * 10);
+        const usados = Math.max(1, 600 - (App.tiempoRestante || 0));
+        App.abrirModalResultados({
+          completado,
+          puntos,
+          correctas: this.aciertos || 10,
+          incorrectas: this.fallos,
+          segundosUsados: usados,
+          onAvanzar: () => App.avanzarSiguienteBloque()
+        });
+      }
+    };
+
+    /* ==========================================================================
+       MÓDULO 3: SOPA DE LETRAS
+       ========================================================================== */
+    const ModuloBloque3 = {
+      palabras: ["ARGENTINA", "BOLIVIA", "BRASIL", "CHILE", "COLOMBIA", "COSTARICA", "CUBA", "ECUADOR", "ELSALVADOR", "GUATEMALA", "HONDURAS", "MEXICO", "NICARAGUA", "PANAMA", "PARAGUAY"],
+      gridSize: 14,
+      encontradas: [],
+      grid: [],
+
+      preparar() {
+        App.setTitulo("SOPA DE LETRAS");
+        App.mostrarTopBar(true);
+        App.setInstrucciones("Encuentra los 15 países deslizando tu dedo sobre el tablero.");
+        this.encontradas = [];
+        this.generarTablero();
+        this.render();
+      },
+
+      arrancar() {
+        App.iniciarCronometro(600, (completado) => this.finalizar(completado));
+      },
+
+      generarTablero() {
+        this.grid = Array.from({ length: this.gridSize }, () => Array(this.gridSize).fill(''));
+        this.palabras.forEach(pal => {
+          let puesto = false, intentos = 0;
+          while (!puesto && intentos < 300) {
+            const dir = Math.floor(Math.random() * 3);
+            const f = Math.floor(Math.random() * this.gridSize);
+            const c = Math.floor(Math.random() * this.gridSize);
+            if (this.cabe(pal, f, c, dir)) {
+              for (let i = 0; i < pal.length; i++) {
+                const rf = f + (dir === 1 || dir === 2 ? i : 0);
+                const rc = c + (dir === 0 || dir === 2 ? i : 0);
+                this.grid[rf][rc] = pal[i];
+              }
+              puesto = true;
+            }
+            intentos++;
+          }
+        });
+        const abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        for (let r = 0; r < this.gridSize; r++) {
+          for (let c = 0; c < this.gridSize; c++) {
+            if (!this.grid[r][c]) this.grid[r][c] = abc[Math.floor(Math.random() * abc.length)];
+          }
+        }
+      },
+
+      cabe(pal, f, c, dir) {
+        for (let i = 0; i < pal.length; i++) {
+          const rf = f + (dir === 1 || dir === 2 ? i : 0);
+          const rc = c + (dir === 0 || dir === 2 ? i : 0);
+          if (rf >= this.gridSize || rc >= this.gridSize || (this.grid[rf][rc] && this.grid[rf][rc] !== pal[i])) return false;
+        }
+        return true;
+      },
+
+      render() {
+        const area = document.getElementById('app-dynamic-area');
+        area.innerHTML = `
+          <div style="width:100%; display:flex; flex-direction:column; gap:8px;">
+            <div class="ws-progress">
+              <div class="ws-text">FALTAN: <span id="ws-faltan">${this.palabras.length - this.encontradas.length}</span> PALABRAS</div>
+              <div class="ws-track"><div class="ws-fill" id="ws-fill"></div></div>
+            </div>
+            <div id="word-search-grid"></div>
+          </div>
+        `;
+
+        const gridEl = document.getElementById('word-search-grid');
+        this.grid.forEach((row, r) => {
+          row.forEach((letra, c) => {
+            const cell = document.createElement('div');
+            cell.className = 'ws-cell';
+            cell.textContent = letra;
+            cell.dataset.r = r; cell.dataset.c = c;
+            gridEl.appendChild(cell);
+          });
+        });
+
+        this.activarTouch(gridEl);
+      },
+
+      activarTouch(gridEl) {
+        let dragging = false, inicio = null, seleccionados = [];
+
+        const getCell = (e) => {
+          const t = e.touches ? e.touches[0] : e;
+          const el = document.elementFromPoint(t.clientX, t.clientY);
+          return (el && el.classList.contains('ws-cell')) ? el : null;
+        };
+
+        const onDown = (e) => {
+          const c = getCell(e);
+          if (!c) return;
+          dragging = true; inicio = c; seleccionados = [c];
+          c.classList.add('selected');
+        };
+
+        const onMove = (e) => {
+          if (!dragging || !inicio) return;
+          const c = getCell(e);
+          if (!c) return;
+          const r1 = +inicio.dataset.r, c1 = +inicio.dataset.c;
+          const r2 = +c.dataset.r, c2 = +c.dataset.c;
+          const dr = r2 - r1, dc = c2 - c1;
+          if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) {
+            gridEl.querySelectorAll('.ws-cell.selected').forEach(x => {
+              if (!x.classList.contains('found')) x.classList.remove('selected');
+            });
+            seleccionados = [];
+            const pasos = Math.max(Math.abs(dr), Math.abs(dc));
+            const sr = dr === 0 ? 0 : dr / Math.abs(dr);
+            const sc = dc === 0 ? 0 : dc / Math.abs(dc);
+            for (let i = 0; i <= pasos; i++) {
+              const el = gridEl.querySelector(`[data-r="${r1 + sr * i}"][data-c="${c1 + sc * i}"]`);
+              if (el) { el.classList.add('selected'); seleccionados.push(el); }
+            }
+          }
+        };
+
+        const onUp = () => {
+          if (!dragging) return;
+          dragging = false;
+          if (seleccionados.length > 1) {
+            const txt = seleccionados.map(x => x.textContent).join('');
+            const inv = txt.split('').reverse().join('');
+            const match = this.palabras.find(p => p === txt || p === inv);
+            if (match && !this.encontradas.includes(match)) {
+              this.encontradas.push(match);
+              seleccionados.forEach(x => x.classList.add('found'));
+              document.getElementById('ws-faltan').textContent = this.palabras.length - this.encontradas.length;
+              document.getElementById('ws-fill').style.width = `${(this.encontradas.length / this.palabras.length) * 100}%`;
+              if (this.encontradas.length === this.palabras.length) this.finalizar(true);
+            }
+          }
+          gridEl.querySelectorAll('.ws-cell.selected:not(.found)').forEach(x => x.classList.remove('selected'));
+          seleccionados = [];
+        };
+
+        gridEl.onmousedown = onDown; window.onmousemove = onMove; window.onmouseup = onUp;
+        gridEl.ontouchstart = (e) => { e.preventDefault(); onDown(e); };
+        gridEl.ontouchmove = (e) => { e.preventDefault(); onMove(e); };
+        gridEl.ontouchend = onUp;
+      },
+
+      finalizar(completado) {
+        const puntos = completado ? 100 : Math.round((this.encontradas.length / this.palabras.length) * 100);
+        const usados = Math.max(1, 600 - (App.tiempoRestante || 0));
+        App.abrirModalResultados({
+          completado,
+          puntos,
+          correctas: completado ? 15 : this.encontradas.length,
+          incorrectas: completado ? 0 : this.palabras.length - this.encontradas.length,
+          segundosUsados: usados,
+          onAvanzar: () => App.avanzarSiguienteBloque()
+        });
+      }
+    };
+
+    /* ==========================================================================
+       MÓDULO 4: RETO DE AUDIOS
+       ========================================================================== */
+    const ModuloBloque4 = {
+      audio: null,
+      opciones: {
+        A: ['Sofia Vergara', 'Thalía', 'Amparo Grisales', 'Juan Luis Londoño', 'Nairo Quintana', 'Juanes', 'Jorge Enrique Abello', 'Juan Diego Alvira'],
+        B: ['Paulina Rubio', 'Sofia Vergara', 'Amparo Grisales', 'Juanes', 'Maluma', 'Jorge Enrique Abello', 'Juan Diego Alvira', 'Nairo Quintana'],
+        C: ['Amparo Grisales', 'Sofia Vergara', 'Ariadna Thalía Sodi', 'Juan Esteban Aristizábal', 'Juan Luis Londoño', 'Egan Bernal', 'Jorge Enrique Abello', 'Juan Diego Alvira'],
+        D: ['Shakira', 'Amparo Grisales', 'Paulina Rubio', 'Manuel Turizo', 'Maluma', 'Juanes', 'Jorge Enrique Abello', 'Egan Bernal']
+      },
+      seleccion: null,
+
+      preparar() {
+        App.setTitulo("RETO DEL AUDIO");
+        App.mostrarTopBar(true);
+        App.setInstrucciones("Escucha el audio, elige el orden correcto de las 8 voces y presiona VERIFICAR.");
+        this.seleccion = null;
+
+        const area = document.getElementById('app-dynamic-area');
+        area.innerHTML = `
+          <div style="width:100%; height:100%; display:flex; flex-direction:column; gap:6px;">
+            <div class="rv-player" id="rv-player">
+              <audio id="audio-el" src="recursos/Audio.mp3" preload="auto"></audio>
+              <div class="rv-player-top">
+                <button class="rv-btn-back" id="btn-back-5s">⏪ 5s</button>
+                <button class="rv-btn-play" id="btn-play-pause">▶</button>
+                <div class="rv-wave"><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="rv-progress-row">
+                <span id="rv-cur">0:00</span>
+                <div class="rv-bar" id="rv-bar">
+                  <div class="rv-bar-track"><div class="rv-bar-fill" id="rv-fill"></div></div>
+                </div>
+                <span id="rv-dur">0:00</span>
+              </div>
+            </div>
+            <div class="rv-options" id="rv-options-container">
+              ${Object.keys(this.opciones).map(k => `
+                <div class="rv-item" data-op="${k}">
+                  <button class="rv-item-head">
+                    <span class="rt-letter">${k}</span>
+                    <span class="rv-item-title">Opción ${k}</span>
+                    <span class="rv-tag">Elegida</span>
+                    <span class="rv-chev">▼</span>
+                  </button>
+                  <div class="rv-item-body">
+                    <ol class="rv-list">${this.opciones[k].map(n => `<li>${n}</li>`).join('')}</ol>
+                    <button class="rv-select" data-pick="${k}">SELECCIONAR ESTA OPCIÓN</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="rv-verify" id="btn-verificar-audio" disabled>VERIFICAR</button>
+          </div>
+        `;
+
+        this.audio = document.getElementById('audio-el');
+        const playBtn = document.getElementById('btn-play-pause');
+        const backBtn = document.getElementById('btn-back-5s');
+        const player = document.getElementById('rv-player');
+        const cur = document.getElementById('rv-cur');
+        const dur = document.getElementById('rv-dur');
+        const fill = document.getElementById('rv-fill');
+        const vBtn = document.getElementById('btn-verificar-audio');
+
+        playBtn.onclick = () => {
+          if (this.audio.paused) { this.audio.play(); playBtn.textContent = '❚❚'; player.classList.add('rv-playing'); }
+          else { this.audio.pause(); playBtn.textContent = '▶'; player.classList.remove('rv-playing'); }
+        };
+        backBtn.onclick = () => { this.audio.currentTime = Math.max(0, this.audio.currentTime - 5); };
+        this.audio.ontimeupdate = () => {
+          cur.textContent = App.formatearTiempo(Math.floor(this.audio.currentTime));
+          dur.textContent = App.formatearTiempo(Math.floor(this.audio.duration || 0));
+          fill.style.width = `${(this.audio.currentTime / (this.audio.duration || 1)) * 100}%`;
+        };
+
+        area.querySelectorAll('.rv-item-head').forEach(h => {
+          h.onclick = () => h.parentElement.classList.toggle('open');
+        });
+
+        area.querySelectorAll('.rv-select').forEach(b => {
+          b.onclick = () => {
+            this.seleccion = b.dataset.pick;
+            area.querySelectorAll('.rv-item').forEach(it => {
+              it.classList.toggle('selected', it.dataset.op === this.seleccion);
+              it.classList.remove('open');
+            });
+            vBtn.disabled = false;
+          };
+        });
+
+        vBtn.onclick = () => {
+          this.audio.pause();
+          const acerto = this.seleccion === 'C';
+          this.finalizar(acerto);
+        };
+      },
+
+      arrancar() {
+        App.iniciarCronometro(150, (completado) => {
+          if (this.audio) this.audio.pause();
+          this.finalizar(false);
+        });
+      },
+
+      finalizar(acerto) {
+        if (this.audio) this.audio.pause();
+        const puntos = acerto ? 100 : 0;
+        const usados = Math.max(1, 150 - (App.tiempoRestante || 0));
+        App.abrirModalResultados({
+          completado: acerto,
+          puntos: acerto ? 100 : 100, // Al forzar finalizar se otorgan 100 pts
+          correctas: 1,
+          incorrectas: 0,
+          segundosUsados: usados,
+          onAvanzar: () => App.avanzarSiguienteBloque()
+        });
+      }
+    };
+
+    /* ==========================================================================
+       MÓDULO 5: BÚSQUEDA DE OBJETOS
+       ========================================================================== */
+    const ModuloBloque5 = {
+      objetos: [
+        { id: 1, nombre: 'Dinosaurio', x: 45, y: 361, w: 171, h: 199 },
+        { id: 2, nombre: 'Ruana', x: 634, y: 315, w: 246, h: 294 },
+        { id: 3, nombre: 'Reloj de pared', x: 498, y: 86, w: 78, h: 89 },
+        { id: 4, nombre: 'Corbata roja', x: 411, y: 596, w: 86, h: 103 },
+        { id: 5, nombre: 'Botilito', x: 655, y: 930, w: 131, h: 310 },
+        { id: 6, nombre: 'Pocillo', x: 1290, y: 1162, w: 130, h: 158 },
+        { id: 7, nombre: 'Zombie', x: 1056, y: 308, w: 86, h: 103 },
+        { id: 8, nombre: 'Tapabocas', x: 1628, y: 492, w: 86, h: 102 },
+        { id: 9, nombre: 'Palabra “camino”', x: 1628, y: 154, w: 132, h: 158 },
+        { id: 10, nombre: 'Ovni', x: 2152, y: 177, w: 86, h: 103 }
+      ],
+      encontrados: new Set(),
+      fallos: 0,
+
+      preparar() {
+        App.setTitulo("BÚSQUEDA DE OBJETOS");
+        App.mostrarTopBar(true);
+        App.setInstrucciones("Arrastra para mover la escena y haz doble toque sobre cada objeto oculto.");
+        this.encontrados.clear();
+        this.fallos = 0;
+
+        const area = document.getElementById('app-dynamic-area');
+        area.innerHTML = `
+          <div class="hw-root">
+            <div class="hw-viewport" id="hw-viewport">
+              <div class="hw-world" id="hw-world">
+                <img class="hw-img" src="imagen/Oficina1.jpg" alt="Oficina">
+              </div>
+            </div>
+            <div class="hw-hud"><span id="hw-score">0</span>/10 OBJETOS</div>
+            <div class="hw-toast" id="hw-toast">¡Objeto encontrado!</div>
+            <div class="hw-dock">
+              <div class="hw-panel" id="hw-panel">
+                <div class="hw-panel-inner">
+                  <ul class="hw-list" id="hw-list">
+                    ${this.objetos.map(o => `<li class="hw-item" id="hw-item-${o.id}"><span class="hw-name">${o.nombre}</span></li>`).join('')}
+                  </ul>
+                </div>
+              </div>
+              <button class="hw-tab" id="hw-tab">VER LISTA ▲</button>
+            </div>
+          </div>
+        `;
+        this.activarPanZoom();
+      },
+
+      arrancar() {
+        App.iniciarCronometro(150, (completado) => this.finalizar(completado));
+      },
+
+      activarPanZoom() {
+        const vp = document.getElementById('hw-viewport');
+        const world = document.getElementById('hw-world');
+        const panel = document.getElementById('hw-panel');
+        const tab = document.getElementById('hw-tab');
+
+        tab.onclick = () => panel.classList.toggle('hw-open');
+
+        let scale = 0.65, tx = 0, ty = 0;
+        let drag = false, sx = 0, sy = 0, lx = 0, ly = 0, lastTap = 0;
+
+        const aplicar = () => { world.style.transform = `translate3d(${tx}px,${ty}px,0) scale(${scale})`; };
+        const limitar = () => {
+          tx = Math.min(0, Math.max(vp.clientWidth - 2576 * scale, tx));
+          ty = Math.min(0, Math.max(vp.clientHeight - 1450 * scale, ty));
+        };
+
+        tx = (vp.clientWidth - 2576 * scale) / 2;
+        ty = (vp.clientHeight - 1450 * scale) / 2;
+        limitar(); aplicar();
+
+        vp.onpointerdown = (e) => { drag = true; sx = lx = e.clientX; sy = ly = e.clientY; };
+        vp.onpointermove = (e) => {
+          if (!drag) return;
+          tx += e.clientX - lx; ty += e.clientY - ly;
+          lx = e.clientX; ly = e.clientY;
+          limitar(); aplicar();
+        };
+        vp.onpointerup = (e) => {
+          drag = false;
+          const ahora = Date.now();
+          if (ahora - lastTap < 300) {
+            const rect = vp.getBoundingClientRect();
+            const wx = (e.clientX - rect.left - tx) / scale;
+            const wy = (e.clientY - rect.top - ty) / scale;
+            this.seleccionar(wx, wy, world);
+          }
+          lastTap = ahora;
+        };
+      },
+
+      seleccionar(x, y, world) {
+        const hit = this.objetos.find(o => x >= o.x && x <= o.x + o.w && y >= o.y && y <= o.y + o.h);
+        if (hit && !this.encontrados.has(hit.id)) {
+          this.encontrados.add(hit.id);
+          const mk = document.createElement('div');
+          mk.className = 'hw-mark';
+          mk.style.left = `${hit.x}px`; mk.style.top = `${hit.y}px`;
+          mk.style.width = `${hit.w}px`; mk.style.height = `${hit.h}px`;
+          mk.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"></polyline></svg>`;
+          world.appendChild(mk);
+
+          document.getElementById(`hw-item-${hit.id}`).classList.add('hw-found');
+          document.getElementById('hw-score').textContent = this.encontrados.size;
+
+          const toast = document.getElementById('hw-toast');
+          toast.textContent = `¡Encontraste: ${hit.nombre}!`;
+          toast.classList.add('hw-show');
+          setTimeout(() => toast.classList.remove('hw-show'), 1800);
+
+          if (this.encontrados.size === this.objetos.length) this.finalizar(true);
+        } else if (!hit) {
+          this.fallos++;
+          const miss = document.createElement('div');
+          miss.className = 'hw-miss'; miss.textContent = '✕';
+          miss.style.left = `${x}px`; miss.style.top = `${y}px`;
+          world.appendChild(miss);
+          setTimeout(() => miss.remove(), 600);
+        }
+      },
+
+      finalizar(completado) {
+        const puntos = completado ? 100 : (this.encontrados.size * 10);
+        const usados = Math.max(1, 150 - (App.tiempoRestante || 0));
+        App.abrirModalResultados({
+          completado,
+          puntos,
+          correctas: completado ? 10 : this.encontrados.size,
+          incorrectas: completado ? 0 : this.fallos,
+          segundosUsados: usados,
+          onAvanzar: () => App.avanzarSiguienteBloque()
+        });
+      }
+    };
+
+    /* ==========================================================================
+       MÓDULO 6: EL AHORCADO
+       ========================================================================== */
+    const ModuloBloque6 = {
+      palabras: [
+        { palabra: "IDIOSINCRASIA", pista: "Rasgos distintivos de un individuo o grupo", pts: 100 },
+        { palabra: "ESFINGE", pista: "Monstruo mitológico con cabeza humana y cuerpo de león", pts: 70 },
+        { palabra: "XILOFONO", pista: "Instrumento musical con láminas de madera", pts: 40 }
+      ],
+      ronda: 0,
+      errores: 0,
+      adivinadas: new Set(),
+
+      preparar() {
+        App.setTitulo("EL AHORCADO");
+        App.mostrarTopBar(true);
+        App.setInstrucciones("Adivina la palabra antes de completar los 10 trazos del ahorcado.");
+        this.ronda = 0;
+        this.iniciarRondaHTML();
+      },
+
+      arrancar() {
+        App.iniciarCronometro(210, () => this.procesarFallo());
+      },
+
+      iniciarRondaHTML() {
+        this.errores = 0;
+        this.adivinadas.clear();
+        const p = this.palabras[this.ronda];
+
+        const area = document.getElementById('app-dynamic-area');
+        area.innerHTML = `
+          <div class="hg-wrapper">
+            <div class="hg-pista"><strong>Pista:</strong> ${p.pista}</div>
+            <div class="hg-badge" id="hg-badge">Intentos restantes: <span id="hg-intentos">10</span></div>
+            <svg class="hg-canvas" viewBox="0 0 200 220">
+              <line id="hg-p1" x1="20" y1="210" x2="120" y2="210" class="hg-part-hidden" />
+              <line id="hg-p2" x1="70" y1="210" x2="70" y2="20" class="hg-part-hidden" />
+              <line id="hg-p3" x1="70" y1="20" x2="150" y2="20" class="hg-part-hidden" />
+              <line id="hg-p4" x1="150" y1="20" x2="150" y2="40" class="hg-part-hidden" />
+              <circle id="hg-p5" cx="150" cy="60" r="20" class="hg-part-hidden" />
+              <line id="hg-p6" x1="150" y1="80" x2="150" y2="140" class="hg-part-hidden" />
+              <line id="hg-p7" x1="150" y1="90" x2="120" y2="120" class="hg-part-hidden" />
+              <line id="hg-p8" x1="150" y1="90" x2="180" y2="120" class="hg-part-hidden" />
+              <line id="hg-p9" x1="150" y1="140" x2="120" y2="185" class="hg-part-hidden" />
+              <line id="hg-p10" x1="150" y1="140" x2="180" y2="185" class="hg-part-hidden" />
+            </svg>
+            <div class="hg-word" id="hg-word"></div>
+            <div class="hg-keyboard" id="hg-keyboard"></div>
+          </div>
+        `;
+
+        this.pintarLetras();
+        this.pintarTeclado();
+      },
+
+      pintarLetras() {
+        const c = document.getElementById('hg-word');
+        c.innerHTML = '';
+        const pal = this.palabras[this.ronda].palabra;
+        for (let l of pal) {
+          const b = document.createElement('div');
+          b.className = 'hg-letter';
+          b.textContent = this.adivinadas.has(l) ? l : '';
+          c.appendChild(b);
+        }
+      },
+
+      pintarTeclado() {
+        const kb = document.getElementById('hg-keyboard');
+        kb.innerHTML = '';
+        "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split('').forEach(letra => {
+          const btn = document.createElement('button');
+          btn.className = 'hg-key';
+          btn.textContent = letra;
+          btn.onclick = () => this.probarLetra(letra, btn);
+          kb.appendChild(btn);
+        });
+      },
+
+      probarLetra(letra, btn) {
+        btn.disabled = true;
+        const pal = this.palabras[this.ronda].palabra;
+        if (pal.includes(letra)) {
+          this.adivinadas.add(letra);
+          btn.classList.add('correct');
+          this.pintarLetras();
+          const gano = pal.split('').every(l => this.adivinadas.has(l));
+          if (gano) this.finalizar(true);
+        } else {
+          this.errores++;
+          btn.classList.add('wrong');
+          const parte = document.getElementById(`hg-p${this.errores}`);
+          if (parte) parte.classList.replace('hg-part-hidden', 'hg-part-visible');
+          document.getElementById('hg-intentos').textContent = 10 - this.errores;
+          if (this.errores >= 7) document.getElementById('hg-badge').classList.add('peligro');
+          if (this.errores >= 10) this.procesarFallo();
+        }
+      },
+
+      procesarFallo() {
+        if (this.ronda < 2) {
+          this.ronda++;
+          setTimeout(() => {
+            this.iniciarRondaHTML();
+            App.iniciarCronometro(210, () => this.procesarFallo());
+          }, 800);
+        } else {
+          this.finalizar(false);
+        }
+      },
+
+      finalizar(adivino) {
+        const puntos = adivino ? (this.palabras[this.ronda].pts || 100) : 0;
+        const usados = Math.max(1, 210 - (App.tiempoRestante || 0));
+        App.abrirModalResultados({
+          completado: adivino,
+          puntos,
+          correctas: adivino ? 1 : 0,
+          incorrectas: adivino ? 0 : 1,
+          segundosUsados: usados,
+          onAvanzar: () => App.avanzarSiguienteBloque()
+        });
+      }
+    };
+
+    /* ==========================================================================
+       PANTALLA FINAL: PODIO Y RESUMEN GENERAL
+       ========================================================================== */
+    const ModuloPodio = {
+      iniciar() {
+        App.setTitulo("DESAFÍO COMPLETADO");
+        App.mostrarTopBar(false);
+        App.mostrarBotonFin(false);
+        App.setInstrucciones("¡Gran trabajo en equipo! Espera los resultados oficiales del administrador.");
+
+        const area = document.getElementById('app-dynamic-area');
+        area.innerHTML = `
+          <div class="podio-screen">
+            <div class="podio-trofeo">🏆</div>
+            <div>
+              <h2 class="podio-titulo">¡FELICITACIONES!</h2>
+              <div class="podio-equipo">${escHtml(App.equipo.nombre)}</div>
+            </div>
+            <div class="podio-total">
+              <span>Puntaje Total Acumulado</span>
+              <strong id="podio-total">${App.puntajeTotal} PTS</strong>
+            </div>
+            <p id="podio-puesto" style="font-size:0.9rem; font-weight:800; color:var(--azul-oscuro); margin:0;"></p>
+            <p id="podio-sync" style="font-size:0.75rem; color:#475569; margin:0;"></p>
+            <p style="font-size:0.82rem; color:#475569; margin:0;">Superaron con éxito los 6 bloques del Desafío 360.</p>
+          </div>
+        `;
+        Net.actualizarSync();
+        if (Net.estado) Net.actualizarPodio(Net.estado, Net.estado.equipos.find(e => e.id === Net.estado.miEquipo));
+      }
+    };
+
+    // Arranque inicial
+    window.addEventListener('DOMContentLoaded', () => {
+      App.init();
+    });
+  </script>
+</body>
+</html>
