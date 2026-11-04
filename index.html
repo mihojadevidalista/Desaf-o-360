@@ -501,8 +501,8 @@
     .rv-bar-track { width: 100%; height: 5px; border-radius: 5px; background: rgba(255,255,255,0.22); position: relative; }
     .rv-bar-fill { height: 100%; width: 0%; border-radius: 5px; background: var(--amarillo-institucional); }
     .rv-bar-knob { position: absolute; top: 50%; left: 0%; width: 12px; height: 12px; border-radius: 50%; background: #fff; transform: translate(-50%, -50%); }
-    .rv-options { flex: 1; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; padding: 2px; }
-    .rv-item { background: var(--blanco-puro); border: 2px solid transparent; border-radius: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
+    .rv-options { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; padding: 2px 2px 6px; }
+    .rv-item { flex-shrink: 0; background: var(--blanco-puro); border: 2px solid transparent; border-radius: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
     .rv-item-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: none; background: transparent; cursor: pointer; text-align: left; font-family: inherit; }
     .rv-item-title { flex: 1; font-size: 0.8rem; font-weight: 700; color: var(--azul-oscuro); }
     .rv-tag { display: none; font-size: 0.6rem; font-weight: 800; color: var(--azul-oscuro); background: var(--amarillo-institucional); border-radius: 20px; padding: 2px 7px; text-transform: uppercase; }
@@ -596,7 +596,7 @@
   <main class="mobile-container">
     <!-- Header compartido -->
     <header class="header-franja">
-      <img src="imagen/Logo.png" alt="Logo" class="header-logo" onerror="this.src='https://placehold.co/120x40/ffe601/063853?text=Logo'">
+      <img src="imagen/logo.png" alt="Logo" class="header-logo" onerror="this.src='https://placehold.co/120x40/ffe601/063853?text=Logo'">
       <h1 class="header-titulo" id="app-header-titulo">DESAFÍO 360</h1>
     </header>
 
@@ -1655,7 +1655,15 @@
         };
 
         area.querySelectorAll('.rv-item-head').forEach(h => {
-          h.onclick = () => h.parentElement.classList.toggle('open');
+          h.onclick = () => {
+            const item = h.parentElement;
+            const abrir = !item.classList.contains('open');
+            area.querySelectorAll('.rv-item').forEach(it => it.classList.remove('open'));
+            if (abrir) {
+              item.classList.add('open');
+              setTimeout(() => item.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 30);
+            }
+          };
         });
 
         area.querySelectorAll('.rv-select').forEach(b => {
