@@ -151,7 +151,7 @@
       color: #334155;
       line-height: 1.25;
       padding: 4px 6px;
-      padding-right: 6px;
+      padding-right: 120px; /* Margen para no solapar texto con el botón flotante de prueba */
     }
     .instructions-card strong { color: #000; font-weight: 800; }
 
@@ -624,6 +624,11 @@
       <div class="instructions-card" id="app-instructions-card">
         <p id="app-instructions-text">Selecciona tu equipo para comenzar la competencia.</p>
       </div>
+
+      <!-- BOTÓN FLOTANTE TEMPORAL PARA FINALIZAR/SALTAR BLOQUE (solo con MODO_PRUEBAS = true) -->
+      <button id="btn-forzar-fin" class="btn-forzar-fin" style="display: none;">
+        ⚡ FINALIZAR RETO
+      </button>
     </section>
 
     <div class="net-banner" id="net-banner">Sin conexión con el servidor… reintentando</div>
@@ -666,6 +671,10 @@
     /* ==========================================================================
        ORQUESTADOR CENTRAL (MOTOR DEL DESAFÍO 360)
        ========================================================================== */
+    /* Interruptor del botón de prueba "FINALIZAR RETO".
+       true  = visible (pruebas) · false = oculto (evento real) */
+    const MODO_PRUEBAS = true;
+
     const App = {
       equipo: { id: '', nombre: '' },
       puntajeTotal: 0,
@@ -716,7 +725,25 @@
         }
       },
 
-      mostrarBotonFin() { /* botón de prueba eliminado */ },
+      mostrarBotonFin(visible) {
+        const btn = document.getElementById('btn-forzar-fin');
+        if (!btn) return;
+        if (MODO_PRUEBAS && visible && this.bloqueActual >= 1 && this.bloqueActual <= 6) {
+          btn.style.display = 'flex';
+          btn.onclick = () => this.forzarFinBloqueActual();
+        } else {
+          btn.style.display = 'none';
+        }
+      },
+
+      forzarFinBloqueActual() {
+        if (this.bloqueActual === 1) ModuloBloque1.finalizar(true);
+        else if (this.bloqueActual === 2) ModuloBloque2.finalizar(true);
+        else if (this.bloqueActual === 3) ModuloBloque3.finalizar(true);
+        else if (this.bloqueActual === 4) ModuloBloque4.finalizar(true);
+        else if (this.bloqueActual === 5) ModuloBloque5.finalizar(true);
+        else if (this.bloqueActual === 6) ModuloBloque6.finalizar(true);
+      },
 
       formatearTiempo(segundos) {
         const min = Math.floor(segundos / 60);
