@@ -728,7 +728,7 @@
       mostrarBotonFin(visible) {
         const btn = document.getElementById('btn-forzar-fin');
         if (!btn) return;
-        if (MODO_PRUEBAS && visible && this.bloqueActual >= 1 && this.bloqueActual <= 6) {
+        if (MODO_PRUEBAS && visible && this.bloqueActual >= 1 && this.bloqueActual <= 5) {
           btn.style.display = 'flex';
           btn.onclick = () => this.forzarFinBloqueActual();
         } else {
@@ -1292,7 +1292,6 @@
               `).join('')}
             </div>
             <div class="rt-nav">
-              <button class="rt-btn-prev" id="rt-prev" ${this.indice === 0 ? 'disabled' : ''}>←</button>
               <button class="rt-btn-next" id="rt-next" ${this.respuestas[this.indice] === null ? 'disabled' : ''}>${ultima ? 'FINALIZAR' : 'SIGUIENTE'}</button>
             </div>
           </div>
@@ -1305,9 +1304,6 @@
           };
         });
 
-        document.getElementById('rt-prev').onclick = () => {
-          if (this.indice > 0) { this.indice--; this.pintarPregunta(); }
-        };
         document.getElementById('rt-next').onclick = () => {
           if (ultima) this.finalizar(true);
           else { this.indice++; this.pintarPregunta(); }
@@ -1430,7 +1426,7 @@
       preparar() {
         App.setTitulo("SOPA DE LETRAS");
         App.mostrarTopBar(true);
-        App.setInstrucciones("Encuentra los 15 países deslizando tu dedo sobre el tablero.");
+        App.setInstrucciones('<strong>BUSCA LOS 15 PLATOS TÍPICOS DE MÉXICO</strong><br><span style="font-size:0.68rem;">Encuentra las palabras en todas las direcciones</span>');
         this.encontradas = [];
         this.generarTablero();
         this.render();
@@ -1881,7 +1877,7 @@
         const area = document.getElementById('app-dynamic-area');
         area.innerHTML = `
           <div class="hg-wrapper">
-            <div class="hg-pista"><strong>Pista:</strong> ${p.pista}</div>
+            <div class="hg-pista">Completa la frase</div>
             <div class="hg-badge" id="hg-badge">Intentos restantes: <span id="hg-intentos">10</span></div>
             <svg class="hg-canvas" viewBox="0 0 200 220">
               <line id="hg-p1" x1="20" y1="210" x2="120" y2="210" class="hg-part-hidden" />
