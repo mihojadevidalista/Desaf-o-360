@@ -1339,16 +1339,16 @@
        ========================================================================== */
     const ModuloBloque2 = {
       banco: [
-        { pregunta: '¿Quién escribió "La Odisea"?', opciones: ['Sócrates', 'Homero', 'Platón', 'Eurípides'], correcta: 1 },
-        { pregunta: '¿Cuál es el elemento químico más abundante en el universo?', opciones: ['Oxígeno', 'Carbono', 'Hidrógeno', 'Helio'], correcta: 2 },
-        { pregunta: '¿En qué piso de la PGN se encuentra la Secretaría General?', opciones: ['Piso 8', 'Piso 7', 'Piso 10', 'Piso 11'], correcta: 1 },
-        { pregunta: '¿En qué país se encuentra la ciudad de Marrakech?', opciones: ['Egipto', 'Marruecos', 'Turquía', 'Túnez'], correcta: 1 },
-        { pregunta: '¿Qué selección quedó en el tercer puesto en el mundial de 2018?', opciones: ['Alemania', 'Italia', 'Bélgica', 'Brasil'], correcta: 2 },
-        { pregunta: '¿Qué científico descubrió la penicilina?', opciones: ['Marie Curie', 'Alexander Fleming', 'Louis Pasteur', 'Isaac Newton'], correcta: 1 },
-        { pregunta: '¿Cuál es la moneda oficial de Suiza?', opciones: ['Euro', 'Corona', 'Franco suizo', 'Libra'], correcta: 2 },
-        { pregunta: '¿Quién elige al Contralor General de la Nación?', opciones: ['El Presidente', 'El Congreso de la República', 'El Senado', 'La Cámara'], correcta: 1 },
-        { pregunta: '¿Qué piloto tiene más campeonatos de F1?', opciones: ['Fangio', 'Schumacher', 'Hamilton', 'Schumacher y Hamilton comparten récord'], correcta: 3 },
-        { pregunta: '¿En qué continente se encuentra Andorra?', opciones: ['Asia', 'Europa', 'África', 'Oceanía'], correcta: 1 }
+        { pregunta: 'En el “Chavo del 8” ¿Cuál es el nombre del profesor Jirafales?', opciones: ['Rubén Jirafales', 'Inocencio Jirafales', 'Baldomero Jirafales', 'José Jirafales'], correcta: 1 },
+        { pregunta: '¿A qué llaman “Guagua” los cubanos?', opciones: ['Un autobús', 'Un instrumento musical', 'Un baile tradicional', 'Un tipo de sombrero'], correcta: 0 },
+        { pregunta: '¿Qué animal aparece en la bandera de México?', opciones: ['Un águila con una serpiente', 'Un águila sola', 'Un cóndor con una serpiente', 'Un cóndor con una flor'], correcta: 0 },
+        { pregunta: '¿Cuál de las siguientes bebidas se asocia tradicionalmente con Cuba?', opciones: ['Sake', 'Mate', 'Lassi', 'Mojito'], correcta: 3 },
+        { pregunta: '¿Con qué países tiene frontera terrestre México?', opciones: ['Estados Unidos y Guatemala', 'Guatemala, Estados Unidos, Belice y Honduras', 'Estados Unidos, Guatemala y Nicaragua', 'Guatemala, Estados Unidos y Belice'], correcta: 3 },
+        { pregunta: '¿Cuál de los siguientes cantantes no es cubano?', opciones: ['Gloria Estefan', 'Silvio Rodríguez', 'Olga Tañon', 'Pablo Milanés'], correcta: 2 },
+        { pregunta: '¿Cuál de los siguientes grupos de rock fue el último en formarse?', opciones: ['Caifanes', 'Café Tacvba', 'Maná', 'Molotov'], correcta: 3 },
+        { pregunta: '¿Cuál de estos actores nació en Cuba?', opciones: ['Andy García', 'Gael García', 'Benicio del Toro', 'Joaquín Phoenix'], correcta: 0 },
+        { pregunta: 'En México ¿Qué es un Elote?', opciones: ['Una mazorca', 'Una fruta tropical', 'Un animal de granja', 'Un tipo de chile'], correcta: 0 },
+        { pregunta: '¿Cuántas estrellas tiene la bandera de Cuba?', opciones: ['Dos', 'Una', 'Tres', 'Ninguna'], correcta: 1 }
       ],
       preguntas: [],
       indice: 0,
@@ -1422,7 +1422,7 @@
        MÓDULO 3: SOPA DE LETRAS
        ========================================================================== */
     const ModuloBloque3 = {
-      palabras: ["ARGENTINA", "BOLIVIA", "BRASIL", "CHILE", "COLOMBIA", "COSTARICA", "CUBA", "ECUADOR", "ELSALVADOR", "GUATEMALA", "HONDURAS", "MEXICO", "NICARAGUA", "PANAMA", "PARAGUAY"],
+      palabras: ["TACOS", "NACHOS", "GUACAMOLE", "BURRITOS", "POZOLE", "COCHINITA", "CHILES", "CHILAQUILES", "ENCHILADAS", "TORTILLAS", "TAMALES", "QUESADILLAS", "MOLE", "BIRRIA", "CARNITAS"],
       gridSize: 14,
       encontradas: [],
       grid: [],
@@ -1585,10 +1585,10 @@
     const ModuloBloque4 = {
       audio: null,
       opciones: {
-        A: ['Sofia Vergara', 'Thalía', 'Amparo Grisales', 'Juan Luis Londoño', 'Nairo Quintana', 'Juanes', 'Jorge Enrique Abello', 'Juan Diego Alvira'],
-        B: ['Paulina Rubio', 'Sofia Vergara', 'Amparo Grisales', 'Juanes', 'Maluma', 'Jorge Enrique Abello', 'Juan Diego Alvira', 'Nairo Quintana'],
-        C: ['Amparo Grisales', 'Sofia Vergara', 'Ariadna Thalía Sodi', 'Juan Esteban Aristizábal', 'Juan Luis Londoño', 'Egan Bernal', 'Jorge Enrique Abello', 'Juan Diego Alvira'],
-        D: ['Shakira', 'Amparo Grisales', 'Paulina Rubio', 'Manuel Turizo', 'Maluma', 'Juanes', 'Jorge Enrique Abello', 'Egan Bernal']
+        A: ['Eugenio Derbez', 'Thalía', 'Verónica Castro', 'Salma Hayek', 'Celia Cruz', 'Shakira', 'Juanes'],
+        B: ['Eugenio Derbez', 'Verónica Castro', 'Salma Hayek', 'María Antonieta de las Nieves', 'Celia Cruz', 'Carmen Villalobos', 'Juanes'],
+        C: ['Eugenio Derbez', 'Thalía', 'Salma Hayek', 'La Chilindrina', 'Celia Cruz', 'Sofía Vergara', 'Juanes'],
+        D: ['Eugenio Derbez', 'Verónica Castro', 'Paulina Rubio', 'La Chilindrina', 'Celia Cruz', 'Sofía Vergara', 'Juanes']
       },
       seleccion: null,
 
@@ -1853,9 +1853,9 @@
        ========================================================================== */
     const ModuloBloque6 = {
       palabras: [
-        { palabra: "IDIOSINCRASIA", pista: "Rasgos distintivos de un individuo o grupo", pts: 100 },
-        { palabra: "ESFINGE", pista: "Monstruo mitológico con cabeza humana y cuerpo de león", pts: 70 },
-        { palabra: "XILOFONO", pista: "Instrumento musical con láminas de madera", pts: 40 }
+        { palabra: "CUANDO VAYAMOS A CUBA, VISITAMOS VARADERO", pista: "Completa la frase", pts: 100 },
+        { palabra: "VAMOS A COMER TACOS Y CHILAQUILES CON AGUA DE HORCHATA", pista: "Completa la frase", pts: 70 },
+        { palabra: "LA GUAYABERA NUNCA PASA DE MODA", pista: "Completa la frase", pts: 40 }
       ],
       ronda: 0,
       errores: 0,
@@ -1911,7 +1911,9 @@
         for (let l of pal) {
           const b = document.createElement('div');
           b.className = 'hg-letter';
-          b.textContent = this.adivinadas.has(l) ? l : '';
+          const esLetra = /[A-ZÑ]/.test(l);
+          if (!esLetra) { b.style.borderBottom = 'none'; b.style.width = l === ' ' ? '10px' : '12px'; }
+          b.textContent = (!esLetra || this.adivinadas.has(l)) ? l : '';
           c.appendChild(b);
         }
       },
@@ -1935,7 +1937,7 @@
           this.adivinadas.add(letra);
           btn.classList.add('correct');
           this.pintarLetras();
-          const gano = pal.split('').every(l => this.adivinadas.has(l));
+          const gano = pal.split('').every(l => !/[A-ZÑ]/.test(l) || this.adivinadas.has(l));
           if (gano) this.finalizar(true);
         } else {
           this.errores++;
