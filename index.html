@@ -1495,6 +1495,26 @@
         });
 
         this.activarTouch(gridEl);
+        this.ajustar();
+        if (!this._resizeOk) {
+          this._resizeOk = true;
+          window.addEventListener('resize', () => this.ajustar());
+        }
+      },
+
+      /* Ajusta el tablero al espacio disponible para que nada se recorte */
+      ajustar() {
+        const area = document.getElementById('app-dynamic-area');
+        const gridEl = document.getElementById('word-search-grid');
+        const prog = area && area.querySelector('.ws-progress');
+        if (!area || !gridEl || !prog) return;
+        const libreAlto = area.clientHeight - prog.offsetHeight - 8;
+        const lado = Math.floor(Math.max(120, Math.min(375, area.clientWidth, libreAlto)));
+        gridEl.style.boxSizing = 'border-box';
+        gridEl.style.width = lado + 'px';
+        const celda = (lado - 10 - 2 * (this.gridSize - 1)) / this.gridSize;
+        const fuente = Math.max(8, Math.min(13.6, Math.floor(celda * 0.58))) + 'px';
+        gridEl.querySelectorAll('.ws-cell').forEach(c => { c.style.fontSize = fuente; });
       },
 
       activarTouch(gridEl) {
