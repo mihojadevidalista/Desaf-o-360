@@ -23,8 +23,9 @@ const HB_VIVO_MS = 20000;  // un equipo se ve "conectado" si hubo señal en los 
 
 // Columnas (1-based) de la hoja Equipos
 const C = { id: 1, nombre: 2, ocupado: 3, token: 4, bloque: 5, pts: 6, seg: 12,
-            total: 18, tiempo: 19, terminado: 20, fin: 21, ult: 22, clasif: 23 };
-const N_COLS = 23;
+            total: 18, tiempo: 19, terminado: 20, fin: 21, ult: 22, clasif: 23,
+            expulsado: 24, mov: 25 };   // 24 y 25 se crean solas si no existen
+const N_COLS = 25;
 const CLAVES_CFG = ['estado', 't0_ms', 'pausa_inicio_ms', 'pausa_acumulada_ms', 'version'];
 
 /* ----------------------------- Entrada ----------------------------- */
@@ -56,6 +57,9 @@ function manejar_(p) {
     case 'liberar':   return admin_(p, liberar_);
     case 'corregir':  return admin_(p, corregir_);
     case 'clasificar':return admin_(p, clasificar_);
+    case 'expulsar':  return admin_(p, expulsar_);
+    case 'readmitir': return admin_(p, readmitir_);
+    case 'mover':     return admin_(p, mover_);
     default: throw new Error('Acción desconocida: ' + accion);
   }
 }
@@ -104,8 +108,23 @@ function escribirCfg_(cambios) {
 function bool_(v) { return v === true || String(v).toUpperCase() === 'TRUE'; }
 function numONull_(v) { return v === '' || v == null ? null : Number(v); }
 
+let colsOk_ = false;
+function asegurarColumnas_(sh) {
+  if (colsOk_) return;
+  const cache = CacheService.getScriptCache();
+  if (!cache.get('cols_ok')) {
+    const max = sh.getMaxColumns();
+    if (max < N_COLS) sh.insertColumnsAfter(max, N_COLS - max);
+    if (!sh.getRange(1, C.expulsado).getValue()) sh.getRange(1, C.expulsado).setValue('expulsado');
+    if (!sh.getRange(1, C.mov).getValue()) sh.getRange(1, C.mov).setValue('mov');
+    cache.put('cols_ok', '1', 21600);
+  }
+  colsOk_ = true;
+}
+
 function leerEquipos_() {
   const sh = hoja_(HOJA_EQ);
+  asegurarColumnas_(sh);
   const last = sh.getLastRow();
   if (last < 2) return [];
   const vals = sh.getRange(2, 1, last - 1, N_COLS).getValues();
@@ -128,7 +147,9 @@ function leerEquipos_() {
       tiempoTotal: numONull_(r[C.tiempo - 1]),
       terminado: bool_(r[C.terminado - 1]),
       finMs: numONull_(r[C.fin - 1]),
-      clasificado: bool_(r[C.clasif - 1])
+      clasificado: bool_(r[C.clasif - 1]),
+      expulsado: bool_(r[C.expulsado - 1]),
+      mov: Number(r[C.mov - 1]) || 0
     };
   });
 }
@@ -137,6 +158,13 @@ function buscar_(equipos, id) {
   const eq = equipos.filter(e => e.id === Number(id))[0];
   if (!eq) throw new Error('Equipo inexistente');
   return eq;
+}
+
+/** Siguiente bloque pendiente (1..N) después de 'actual'; si no hay adelante, el primero pendiente; N+1 si ya hizo todos. */
+function siguientePendiente_(pts, actual) {
+  for (let i = actual; i < N_BLOQUES; i++) if (pts[i] === null) return i + 1;
+  for (let i = 0; i < N_BLOQUES; i++) if (pts[i] === null) return i + 1;
+  return N_BLOQUES + 1;
 }
 
 function efectivoMs_(cfg, ahora) {
@@ -171,6 +199,7 @@ function estado_(p) {
       cache.put('hb_' + mio.id, String(ahora), 120);
     }
   }
+  const expulsado = !!p.token && equipos.some(e => e.expulsado && e.token === p.token);
   const hbs = cache.getAll(equipos.map(e => 'hb_' + e.id));
 
   const salida = equipos.map(e => ({
@@ -185,6 +214,8 @@ function estado_(p) {
     terminado: e.terminado,
     finMs: e.finMs,
     clasificado: e.clasificado,
+    expulsado: e.expulsado,
+    mov: e.mov,
     conectado: e.ocupado && hbs['hb_' + e.id] ? (ahora - Number(hbs['hb_' + e.id]) < HB_VIVO_MS) : false
   }));
 
@@ -209,6 +240,7 @@ function estado_(p) {
     version: cfg.version,
     tiempoEfectivoMs: efectivoMs_(cfg, ahora),
     miEquipo: miEquipo,
+    expulsado: expulsado,
     ranking: ranking,
     llegada: llegada,
     equipos: salida
@@ -224,6 +256,8 @@ function elegir_(p) {
   const equipos = leerEquipos_();
   const eq = buscar_(equipos, p.id);
 
+  if (equipos.some(e => e.expulsado && e.token === token)) throw new Error('Tu dispositivo fue retirado de la competencia');
+  if (eq.expulsado) throw new Error('Ese grupo fue retirado de la competencia');
   if (eq.ocupado) {
     if (eq.token === token) return { ok: true, reconectado: true, id: eq.id };
     throw new Error('Ese grupo ya fue elegido por otro dispositivo');
@@ -254,9 +288,8 @@ function puntaje_(p) {
   if (!(pts >= 0 && pts <= MAX_PTS)) throw new Error('Puntaje fuera de rango (0 a ' + MAX_PTS + ')');
   if (!(seg >= 0)) throw new Error('Tiempo inválido');
 
-  const hechos = eq.pts.filter(v => v !== null).length;
   if (eq.pts[b - 1] !== null) throw new Error('Ese bloque ya fue registrado');
-  if (b !== hechos + 1) throw new Error('Debes completar los bloques en orden (toca el bloque ' + (hechos + 1) + ')');
+  if (b !== eq.bloque) throw new Error('El grupo debe jugar el bloque ' + eq.bloque + ' (no el ' + b + ')');
 
   const ahora = Date.now();
   const efectivoSeg = efectivoMs_(cfg, ahora) / 1000;
@@ -265,10 +298,12 @@ function puntaje_(p) {
   const sh = hoja_(HOJA_EQ);
   sh.getRange(eq.fila, C.pts + b - 1).setValue(pts);
   sh.getRange(eq.fila, C.seg + b - 1).setValue(seg);
-  sh.getRange(eq.fila, C.bloque).setValue(Math.min(b + 1, N_BLOQUES + 1));
+  const nuevosPts = eq.pts.slice(); nuevosPts[b - 1] = pts;
+  const sig = siguientePendiente_(nuevosPts, b);
+  sh.getRange(eq.fila, C.bloque).setValue(sig);
 
   let terminado = false;
-  if (b === N_BLOQUES) {
+  if (sig > N_BLOQUES) {
     terminado = true;
     sh.getRange(eq.fila, C.terminado).setValue(true);
     sh.getRange(eq.fila, C.fin).setValue(ahora);
@@ -332,6 +367,8 @@ function reiniciar_() {
     sh.getRange(2, C.terminado, n, 1).setValue(false);
     sh.getRange(2, C.fin, n, 2).clearContent();               // fin_ms y ultima_conexion_ms
     sh.getRange(2, C.clasif, n, 1).setValue(false);
+    sh.getRange(2, C.expulsado, n, 1).setValue(false);
+    sh.getRange(2, C.mov, n, 1).setValue(0);
   }
   const cache = CacheService.getScriptCache();
   const equipos = leerEquipos_();
@@ -384,16 +421,67 @@ function corregir_(p) {
 
   // recalcular avance: bloques consecutivos completados
   const nuevos = eq.pts.slice(); nuevos[b - 1] = pts;
-  let hechos = 0;
-  while (hechos < N_BLOQUES && nuevos[hechos] !== null) hechos++;
-  sh.getRange(eq.fila, C.bloque).setValue(Math.min(hechos + 1, N_BLOQUES + 1));
-  if (hechos >= N_BLOQUES && !eq.terminado) {
+  const sig = siguientePendiente_(nuevos, 0);
+  sh.getRange(eq.fila, C.bloque).setValue(sig);
+  if (sig > N_BLOQUES && !eq.terminado) {
     const ahora = Date.now();
     sh.getRange(eq.fila, C.terminado).setValue(true);
     sh.getRange(eq.fila, C.fin).setValue(ahora);
     sh.getRange(eq.fila, C.tiempo).setValue(Math.round(efectivoMs_(cfg, ahora) / 1000));
   }
   log_(eq.id, 'corregir', 'bloque ' + b + ', ' + pts + ' pts, ' + seg + ' s');
+  return invalidar_({ ok: true });
+}
+
+/** Saca al grupo de la competencia: su dispositivo queda fuera, no cuenta en el ranking y no se puede volver a elegir. */
+function expulsar_(p) {
+  const eq = buscar_(leerEquipos_(), p.id);
+  if (eq.expulsado) throw new Error('Ese grupo ya fue expulsado');
+  if (!eq.ocupado) throw new Error('Ese grupo aún no ha sido elegido por ningún dispositivo');
+  const sh = hoja_(HOJA_EQ);
+  sh.getRange(eq.fila, C.ocupado).setValue(false);
+  sh.getRange(eq.fila, C.expulsado).setValue(true);   // el token se conserva para reconocer al dispositivo expulsado
+  sh.getRange(eq.fila, C.clasif).setValue(false);
+  CacheService.getScriptCache().remove('hb_' + eq.id);
+  log_(eq.id, 'expulsar', eq.nombre);
+  return invalidar_({ ok: true });
+}
+
+/** Revierte una expulsión: el grupo queda libre (conserva su avance) para ser elegido otra vez. */
+function readmitir_(p) {
+  const eq = buscar_(leerEquipos_(), p.id);
+  if (!eq.expulsado) throw new Error('Ese grupo no está expulsado');
+  const sh = hoja_(HOJA_EQ);
+  sh.getRange(eq.fila, C.expulsado).setValue(false);
+  sh.getRange(eq.fila, C.token).clearContent();
+  log_(eq.id, 'readmitir', eq.nombre);
+  return invalidar_({ ok: true });
+}
+
+/** Envía al grupo a un reto: si ya lo había hecho, se borra ese resultado para que lo repita. */
+function mover_(p) {
+  const cfg = leerCfg_();
+  if (cfg.estado !== 'en_curso' && cfg.estado !== 'pausada') throw new Error('Solo se puede mover un grupo con la competencia en curso o en pausa');
+  const eq = buscar_(leerEquipos_(), p.id);
+  if (!eq.ocupado) throw new Error('El grupo no está activo');
+  const b = parseInt(p.bloque, 10);
+  if (!(b >= 1 && b <= N_BLOQUES)) throw new Error('Bloque inválido');
+  if (eq.bloque === b && eq.pts[b - 1] === null) throw new Error('El grupo ya está en ese reto');
+
+  const sh = hoja_(HOJA_EQ);
+  const repite = eq.pts[b - 1] !== null;
+  if (repite) {
+    sh.getRange(eq.fila, C.pts + b - 1).clearContent();
+    sh.getRange(eq.fila, C.seg + b - 1).clearContent();
+  }
+  if (eq.terminado) {                     // si ya había terminado, deja de estarlo
+    sh.getRange(eq.fila, C.terminado).setValue(false);
+    sh.getRange(eq.fila, C.fin).clearContent();
+    sh.getRange(eq.fila, C.tiempo).clearContent();
+  }
+  sh.getRange(eq.fila, C.bloque).setValue(b);
+  sh.getRange(eq.fila, C.mov).setValue(eq.mov + 1);   // avisa al celular del grupo para que se recoloque
+  log_(eq.id, 'mover', (repite ? 'repetir' : 'ir a') + ' bloque ' + b);
   return invalidar_({ ok: true });
 }
 

@@ -827,6 +827,8 @@
       /* TRANSICIÓN CORREGIDA: MONTA EL BLOQUE DETRÁS DE LA CORTINA INMEDIATAMENTE */
       avanzarSiguienteBloque() {
         this.bloqueActual++;
+        // salta los retos que el servidor ya tiene registrados (p. ej. tras un reenvío del admin)
+        while (this.bloqueActual >= 1 && this.bloqueActual <= 6 && Net.retoRegistrado(this.bloqueActual)) this.bloqueActual++;
         this.detenerCronometro();
 
         if (this.bloqueActual >= 1 && this.bloqueActual <= 6) {
@@ -944,6 +946,18 @@
       },
 
       procesar(s) {
+        // Expulsado por el administrador: pantalla de salida y se detiene todo
+        if (s.expulsado) {
+          if (!this.expulsado) {
+            this.expulsado = true;
+            this.cola = []; this.guardarCola();
+            App.detenerCronometro();
+            App.setPausa(true, 'Fuera de la competencia', 'El administrador retiró a tu equipo de la competencia.', '🚫');
+          }
+          return;
+        }
+        if (this.expulsado) { location.reload(); return; }   // fue readmitido
+
         const mio = s.miEquipo != null ? s.equipos.find(e => e.id === s.miEquipo) : null;
 
         // Sesión perdida: el admin reinició o liberó este grupo
@@ -951,6 +965,12 @@
           this.borrar('d360_cola');
           location.reload();
           return;
+        }
+
+        // El admin envió a este grupo a otro reto: se recarga y retoma donde le corresponde
+        if (mio) {
+          if (this.movVisto === undefined) this.movVisto = mio.mov || 0;
+          else if ((mio.mov || 0) !== this.movVisto) { this.borrar('d360_cola'); location.reload(); return; }
         }
 
         if (!this.iniciado) { this.iniciado = true; this.montarInicial(s, mio); }
@@ -964,7 +984,20 @@
         this.aplicarEstadoGlobal(s, mio);
         if (ModuloMenu.montado) ModuloMenu.refrescar(s);
         if (!this.jugando && App.equipo.id && (s.estado === 'en_curso' || s.estado === 'pausada')) this.programarInicio(s);
+        // Podio en pantalla pero el servidor aún le tiene retos pendientes: vuelve a jugarlos
+        if (App.bloqueActual >= 7 && mio && !mio.terminado && mio.bloque >= 1 && mio.bloque <= 6 &&
+            !this.cola.length && !this.enviando && (s.estado === 'en_curso' || s.estado === 'pausada')) {
+          this.pendCont = (this.pendCont || 0) + 1;
+          if (this.pendCont >= 3) { location.reload(); return; }
+        } else this.pendCont = 0;
         this.actualizarPodio(s, mio);
+      },
+
+      retoRegistrado(n) {
+        const s = this.estado;
+        if (!s || s.miEquipo == null) return false;
+        const e = s.equipos.find(x => x.id === s.miEquipo);
+        return !!(e && e.pts && e.pts[n - 1] !== null && e.pts[n - 1] !== undefined);
       },
 
       montarInicial(s, mio) {
@@ -1011,6 +1044,7 @@
       },
 
       reportar(bloque, pts, seg) {
+        if (this.expulsado) return;
         pts = Math.max(0, Math.min(100, Math.round(pts)));
         seg = Math.max(0, Math.round(seg));
         this.cola.push({ id: Number(App.equipo.id), bloque, pts, seg, fallos: 0 });
@@ -1117,12 +1151,12 @@
       refrescar(s) {
         const ul = document.getElementById('select-options');
         if (!ul) return;
-        const firma = s.equipos.map(e => e.id + ':' + e.nombre + ':' + (e.ocupado ? 1 : 0)).join('|') + '|' + s.miEquipo;
+        const firma = s.equipos.map(e => e.id + ':' + e.nombre + ':' + (e.ocupado ? 1 : 0) + (e.expulsado ? 'x' : '')).join('|') + '|' + s.miEquipo;
         if (firma !== this.firma) {
           this.firma = firma;
           ul.innerHTML = s.equipos.map(e => {
             const mio = e.id === s.miEquipo;
-            const bloqueado = e.ocupado && !mio;
+            const bloqueado = (e.ocupado && !mio) || e.expulsado;
             return `<li data-value="${e.id}" data-nombre="${escHtml(e.nombre)}" class="${bloqueado ? 'ocupado' : ''}">${escHtml(e.nombre)}</li>`;
           }).join('');
         }
@@ -1434,7 +1468,7 @@
       },
 
       arrancar() {
-        App.iniciarCronometro(600, (completado) => this.finalizar(completado));
+        App.iniciarCronometro(420, (completado) => this.finalizar(completado));
       },
 
       generarTablero() {
@@ -1584,7 +1618,7 @@
 
       finalizar(completado) {
         const puntos = completado ? 100 : Math.round((this.encontradas.length / this.palabras.length) * 100);
-        const usados = Math.max(1, 600 - (App.tiempoRestante || 0));
+        const usados = Math.max(1, 420 - (App.tiempoRestante || 0));
         App.abrirModalResultados({
           completado,
           puntos,

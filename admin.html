@@ -283,6 +283,11 @@
     .btn-sec { background:#fff; color:var(--azul-oscuro); border:2px solid var(--azul-oscuro); padding:10px 18px; }
     .tag-clas { display:inline-block; background:#d1fae5; color:#065f46; font-size:0.62rem; font-weight:800; border-radius:20px; padding:2px 8px; margin-left:6px; }
     .gcard.libre { opacity:0.75; }
+    .mini:disabled { opacity:0.4; cursor:not-allowed; }
+    .mini.now { background:var(--amarillo-institucional); border-color:var(--azul-oscuro); }
+    .gctl { margin-top:10px; padding-top:8px; border-top:1px dashed rgba(239,68,68,0.35); }
+    .gctl-t { font-size:0.62rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--texto-suave); }
+    .gctl-nota { font-size:0.62rem; color:var(--texto-suave); margin-top:4px; line-height:1.3; }
     .btn-peligro { background:var(--rojo-fallo); color:#fff; padding:10px 18px; box-shadow:0 4px 12px rgba(239,68,68,0.3); }
   </style>
 </head>
@@ -329,7 +334,7 @@
       <button class="tab" data-v="ganadores" type="button">🏆 Ganadores <span class="cand" id="cand"></span></button>
     </nav>
 
-    <section class="vista activa" id="v-avance"><div class="grid-grupos" id="grid-grupos"></div></section>
+    <section class="vista activa" id="v-avance"><div class="grid-grupos" id="grid-grupos"></div><div id="expulsados" style="margin-top:14px"></div></section>
     <section class="vista" id="v-stats"><div class="stat-grid" id="stat-grid"></div></section>
     <section class="vista" id="v-ganadores"><div id="ganadores"></div></section>
 
@@ -429,6 +434,7 @@
           return {
             id: e.id, nombre: e.nombre, ocupado: e.ocupado, conectado: e.conectado,
             terminadoSrv: e.terminado, tiempoTotal: e.tiempoTotal, finMs: e.finMs, clasificado: e.clasificado,
+            bloque: e.bloque, expulsado: !!e.expulsado,
             retos: e.pts.map(function (p, i) { return { puntos: p, tiempo: e.seg[i] }; })
           };
         });
@@ -457,6 +463,12 @@
         return g.retos.reduce(function (a, r) { return a + (r.tiempo || 0); }, 0);
       }
       function terminado(g) { return completados(g) >= N; }
+      // Reto en el que está el grupo (índice 0..N-1): el que le asignó el servidor
+      function actual(g) {
+        if (g.bloque >= 1 && g.bloque <= N) return g.bloque - 1;
+        for (var i = 0; i < N; i++) if (g.retos[i].puntos === null) return i;
+        return N;
+      }
       function participantes() { return grupos.filter(function (g) { return g.ocupado; }); }
 
       // Orden oficial calculado por el servidor (puntaje desc, desempate por menor tiempo)
@@ -522,6 +534,23 @@
           if (window.confirm('¿Liberar "' + g.nombre + '"?\nEl dispositivo actual perderá la sesión y el grupo podrá ser elegido otra vez (conserva su avance).')) {
             orden('liberar', { id: id }).then(function (r) { if (r && r.ok) toast('Grupo liberado'); });
           }
+        } else if (act === 'exp') {
+          if (window.confirm('¿EXPULSAR a "' + g.nombre + '" de la competencia?\n\n• Su dispositivo saldrá del juego.\n• Dejará de contar en el ranking y las estadísticas.\n• Nadie podrá volver a elegir este grupo.\n\nPodrás revertirlo con "Readmitir" en la sección Grupos expulsados.')) {
+            orden('expulsar', { id: id }).then(function (r) { if (r && r.ok) { delete abiertas[id]; toast('Grupo expulsado'); } });
+          }
+        } else if (act === 'readm') {
+          if (window.confirm('¿Readmitir a "' + g.nombre + '"?\nQuedará libre para que un dispositivo lo elija de nuevo (conserva su avance).')) {
+            orden('readmitir', { id: id }).then(function (r) { if (r && r.ok) toast('Grupo readmitido'); });
+          }
+        } else if (act === 'mov') {
+          var nombreReto = RETOS[b];
+          var hecho = g.retos[b].puntos !== null;
+          var msg = hecho
+            ? '¿Enviar a "' + g.nombre + '" a REPETIR el reto ' + (b + 1) + ' (' + nombreReto + ')?\n\nSe borrará su resultado de ese reto (' + g.retos[b].puntos + ' pts) y tendrá que volver a jugarlo.'
+            : '¿Enviar a "' + g.nombre + '" al reto ' + (b + 1) + ' (' + nombreReto + ')?\n\nTodavía no lo ha hecho. Su celular saltará a ese reto y luego retomará los que le falten.';
+          if (window.confirm(msg)) {
+            orden('mover', { id: id, bloque: b + 1 }).then(function (r) { if (r && r.ok) toast('Grupo enviado al reto ' + (b + 1)); });
+          }
         } else if (act === 'corr') {
           var r0 = g.retos[b];
           var p = window.prompt('Puntos del bloque ' + (b + 1) + ' (0 a ' + PUNTOS_POR_RETO + '):', r0.puntos !== null ? r0.puntos : '');
@@ -570,33 +599,46 @@
         if (terminado(g)) return '✅ Terminó todos los retos';
         var senal = g.conectado ? '' : ' · 🔌 sin señal';
         if (estado === 'sin_iniciar') return (g.conectado ? '🟢' : '🔌') + ' En el lobby';
-        var c = completados(g);
-        return (estado === 'pausada' ? '⏸ En pausa · ' : '▶ ') + 'Reto ' + (c + 1) + ': ' + RETOS[c] + senal;
+        var k = actual(g);
+        return (estado === 'pausada' ? '⏸ En pausa · ' : '▶ ') + 'Reto ' + (k + 1) + ': ' + RETOS[k] + senal;
       }
 
       function renderAvance() {
         var rank = ranking();
-        var libres = grupos.filter(function (g) { return !g.ocupado; });
+        var libres = grupos.filter(function (g) { return !g.ocupado && !g.expulsado; });
         var lista = rank.concat(libres);
         var html = '';
         lista.forEach(function (g, i) {
           var c = completados(g);
           var pct = Math.round(c / N * 100);
+          var cur = actual(g);
           var chips = RETOS.map(function (r, k) {
-            var cls = k < c ? 'ok' : (k === c && g.ocupado && estado !== 'sin_iniciar' && c < N ? 'now' : '');
-            return '<div class="chip ' + cls + '" title="' + esc(r) + '">' + (k < c ? '✓' : (k + 1)) + '</div>';
+            var ok = g.retos[k].puntos !== null;
+            var cls = ok ? 'ok' : (k === cur && g.ocupado && estado !== 'sin_iniciar' && c < N ? 'now' : '');
+            return '<div class="chip ' + cls + '" title="' + esc(r) + '">' + (ok ? '✓' : (k + 1)) + '</div>';
           }).join('');
           var mejor = '—';
           g.retos.forEach(function (r) { if (r.puntos !== null && (mejor === '—' || r.puntos > mejor)) mejor = r.puntos; });
           var detalle = g.retos.map(function (r, k) {
             var hecho = r.puntos !== null;
-            var enCurso = g.ocupado && k === c && estado !== 'sin_iniciar' && c < N;
+            var enCurso = g.ocupado && k === cur && estado !== 'sin_iniciar' && c < N;
             return '<div class="drow' + (hecho || enCurso ? '' : ' pend') + '"><span class="n">' + (k + 1) + '. ' + esc(RETOS[k]) + '</span>' +
               '<span class="p">' + (hecho ? r.puntos + ' pts' : (enCurso ? 'en curso' : '—')) + '</span>' +
               '<span class="t">' + (hecho ? mmss(r.tiempo) : '—') + '</span></div>';
           }).join('');
           var corr = g.ocupado ? '<div class="gacts"><span style="font-size:.68rem;color:var(--texto-suave);align-self:center">Corregir bloque:</span>' +
             RETOS.map(function (r, k) { return '<button type="button" class="mini" data-act="corr" data-id="' + g.id + '" data-b="' + k + '">' + (k + 1) + '</button>'; }).join('') + '</div>' : '';
+          var puedeMover = estado === 'en_curso' || estado === 'pausada';
+          var ctl = g.ocupado ? '<div class="gctl"><div class="gctl-t">Control de ubicación del grupo</div>' +
+            '<div class="gacts"><span style="font-size:.68rem;color:var(--texto-suave);align-self:center">Enviar al reto:</span>' +
+            RETOS.map(function (r, k) {
+              var hecho = g.retos[k].puntos !== null;
+              var esActual = k === cur && c < N && !hecho;
+              return '<button type="button" class="mini' + (esActual ? ' now' : '') + '" data-act="mov" data-id="' + g.id + '" data-b="' + k + '"' +
+                (puedeMover && !esActual ? '' : ' disabled') + ' title="' + esc((hecho ? 'Repetir: ' : (esActual ? 'Está aquí: ' : 'Ir a: ')) + r) + '">' + (hecho ? '↻ ' : (esActual ? '' : '→ ')) + (k + 1) + '</button>';
+            }).join('') + '</div>' +
+            '<div class="gctl-nota">↻ repetir (borra su resultado de ese reto) · → ir a uno pendiente' + (puedeMover ? '' : ' · disponible con la competencia en curso') + '</div>' +
+            '<div class="gacts"><button type="button" class="mini rojo" data-act="exp" data-id="' + g.id + '">🚫 Expulsar de la competencia</button></div></div>' : '';
           var acts = '<div class="gacts"><button type="button" class="mini" data-act="ren" data-id="' + g.id + '">✏️ Renombrar</button>' +
             (g.ocupado ? '<button type="button" class="mini rojo" data-act="lib" data-id="' + g.id + '">🔓 Liberar grupo</button>' : '') + '</div>';
           var esLider = g.ocupado && i === 0 && puntos(g) > 0;
@@ -611,12 +653,23 @@
               '<div class="gstat"><b>' + mmss(tiempo(g)) + '</b><span>Tiempo total</span></div>' +
               '<div class="gstat"><b>' + mejor + '</b><span>Mejor reto</span></div>' +
             '</div>' +
-            '<div class="gdetalle">' + detalle + corr + '</div>' +
+            '<div class="gdetalle">' + detalle + corr + ctl + '</div>' +
             acts +
-            '<div class="toggle-hint">' + (abiertas[g.id] ? 'Toca para ocultar el detalle' : 'Toca para ver el detalle por reto') + '</div>' +
+            '<div class="toggle-hint">' + (abiertas[g.id] ? 'Toca para ocultar el detalle' : 'Toca para ver el detalle y el control del grupo') + '</div>' +
           '</article>';
         });
         $('grid-grupos').innerHTML = html;
+        renderExpulsados();
+      }
+
+      function renderExpulsados() {
+        var ex = grupos.filter(function (g) { return g.expulsado; });
+        var el = $('expulsados');
+        if (!ex.length) { el.innerHTML = ''; return; }
+        el.innerHTML = '<div class="panel"><h3>🚫 Grupos expulsados</h3><div class="lista">' + ex.map(function (g) {
+          return '<div class="fila"><div class="nm">' + esc(g.nombre) + '<span class="sub">' + puntos(g) + ' pts · ' + completados(g) + '/' + N + ' retos al salir</span></div>' +
+            '<button type="button" class="mini" data-act="readm" data-id="' + g.id + '">↩ Readmitir</button></div>';
+        }).join('') + '</div></div>';
       }
 
       function filaRank(g, i, valor, sub, etiqueta) {
@@ -750,6 +803,11 @@
         var id = c.dataset.id;
         abiertas[id] = !abiertas[id];
         renderAvance();
+      });
+
+      $('expulsados').addEventListener('click', function (e) {
+        var a = e.target.closest('[data-act]');
+        if (a) accionGrupo(a.dataset.act, Number(a.dataset.id), Number(a.dataset.b));
       });
 
       /* ---------- arranque ---------- */
