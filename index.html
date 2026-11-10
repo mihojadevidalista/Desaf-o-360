@@ -1417,7 +1417,7 @@
        MÓDULO 3: SOPA DE LETRAS
        ========================================================================== */
     const ModuloBloque3 = {
-      palabras: ["TACOS", "NACHOS", "GUACAMOLE", "BURRITOS", "POZOLE", "COCHINITA", "CHILES", "CHILAQUILES", "ENCHILADAS", "TORTILLAS", "TAMALES", "QUESADILLAS", "MOLE", "BIRRIA", "CARNITAS"],
+      palabras: ["TACO", "NACHO", "GUACAMOLE", "BURRITO", "POZOLE", "COCHINITA", "CHILE", "CHILAQUIL", "ENCHILADA", "TORTILLA", "TAMAL", "QUESADILLA", "BIRRIA", "TOSTADA", "ELOTE"],
       gridSize: 14,
       encontradas: [],
       grid: [],
@@ -1600,10 +1600,10 @@
     const ModuloBloque4 = {
       audio: null,
       opciones: {
-        A: ['Eugenio Derbez', 'Thalía', 'Verónica Castro', 'Salma Hayek', 'Celia Cruz', 'Shakira', 'Juanes'],
-        B: ['Eugenio Derbez', 'Verónica Castro', 'Salma Hayek', 'María Antonieta de las Nieves', 'Celia Cruz', 'Carmen Villalobos', 'Juanes'],
-        C: ['Eugenio Derbez', 'Thalía', 'Salma Hayek', 'La Chilindrina', 'Celia Cruz', 'Sofía Vergara', 'Juanes'],
-        D: ['Eugenio Derbez', 'Verónica Castro', 'Paulina Rubio', 'La Chilindrina', 'Celia Cruz', 'Sofía Vergara', 'Juanes']
+        A: ['Salma Kayek', 'Eugenio Derbez', 'Verónica Castro', 'William Levy', 'Thalia', 'Andy García', 'Adela Noruega'],
+        B: ['Salma Hayek', 'Eugenio Derbez', 'Victoria Ruffo', 'William Levy', 'Thalia', 'Gael García', 'Bibi Gaitán'],
+        C: ['Salma Hayek', 'Eugenio Derbez', 'Victoria Ruffo', 'William Levy', 'Thalia', 'Andy García', 'Adela Noriega'],
+        D: ['Salma Hayek', 'Eugenio Derbez', 'Verónica Castro', 'William Levy', 'Thalia', 'Gael García', 'Bibi Gaitán']
       },
       seleccion: null,
 
@@ -1879,7 +1879,7 @@
       preparar() {
         App.setTitulo("EL AHORCADO");
         App.mostrarTopBar(true);
-        App.setInstrucciones("Adivina la palabra antes de completar los 10 trazos del ahorcado.");
+        App.setInstrucciones("Adivina la palabra antes de agotar los 6 intentos.");
         this.ronda = 0;
         this.iniciarRondaHTML();
       },
@@ -1897,12 +1897,12 @@
         area.innerHTML = `
           <div class="hg-wrapper">
             <div class="hg-pista">Completa la frase</div>
-            <div class="hg-badge" id="hg-badge">Intentos restantes: <span id="hg-intentos">10</span></div>
+            <div class="hg-badge" id="hg-badge">Intentos restantes: <span id="hg-intentos">6</span></div>
             <svg class="hg-canvas" viewBox="0 0 200 220">
-              <line id="hg-p1" x1="20" y1="210" x2="120" y2="210" class="hg-part-hidden" />
-              <line id="hg-p2" x1="70" y1="210" x2="70" y2="20" class="hg-part-hidden" />
-              <line id="hg-p3" x1="70" y1="20" x2="150" y2="20" class="hg-part-hidden" />
-              <line id="hg-p4" x1="150" y1="20" x2="150" y2="40" class="hg-part-hidden" />
+              <line id="hg-p1" x1="20" y1="210" x2="120" y2="210" class="hg-part-visible" />
+              <line id="hg-p2" x1="70" y1="210" x2="70" y2="20" class="hg-part-visible" />
+              <line id="hg-p3" x1="70" y1="20" x2="150" y2="20" class="hg-part-visible" />
+              <line id="hg-p4" x1="150" y1="20" x2="150" y2="40" class="hg-part-visible" />
               <circle id="hg-p5" cx="150" cy="60" r="20" class="hg-part-hidden" />
               <line id="hg-p6" x1="150" y1="80" x2="150" y2="140" class="hg-part-hidden" />
               <line id="hg-p7" x1="150" y1="90" x2="120" y2="120" class="hg-part-hidden" />
@@ -1957,11 +1957,11 @@
         } else {
           this.errores++;
           btn.classList.add('wrong');
-          const parte = document.getElementById(`hg-p${this.errores}`);
+          const parte = document.getElementById(`hg-p${this.errores + 4}`);
           if (parte) parte.classList.replace('hg-part-hidden', 'hg-part-visible');
-          document.getElementById('hg-intentos').textContent = 10 - this.errores;
-          if (this.errores >= 7) document.getElementById('hg-badge').classList.add('peligro');
-          if (this.errores >= 10) this.procesarFallo();
+          document.getElementById('hg-intentos').textContent = Math.max(0, 6 - this.errores);
+          if (this.errores >= 4) document.getElementById('hg-badge').classList.add('peligro');
+          if (this.errores >= 6) this.procesarFallo();
         }
       },
 
