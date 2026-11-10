@@ -453,6 +453,13 @@
     .rt-letter { width: 26px; height: 26px; border-radius: 50%; background: var(--gris-fondo); color: var(--azul-oscuro); font-weight: 900; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; }
     .rt-option.selected .rt-letter { background: var(--azul-oscuro); color: var(--amarillo-institucional); }
     .rt-text { font-size: 0.8rem; font-weight: 600; color: #334155; }
+    .rt-option:disabled { cursor: default; }
+    .rt-option.correct { background: var(--verde-acierto); border-color: var(--verde-acierto); }
+    .rt-option.correct .rt-text { color: #fff; }
+    .rt-option.correct .rt-letter { background: #fff; color: var(--verde-acierto); }
+    .rt-option.wrong { background: var(--rojo-fallo); border-color: var(--rojo-fallo); }
+    .rt-option.wrong .rt-text { color: #fff; }
+    .rt-option.wrong .rt-letter { background: #fff; color: var(--rojo-fallo); }
     .rt-nav { display: flex; gap: 8px; }
     .rt-btn-prev { width: 44px; border: none; border-radius: var(--radio-boton); background: var(--blanco-puro); color: var(--azul-oscuro); display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .rt-btn-next { flex: 1; border: none; border-radius: var(--radio-boton); background: var(--azul-oscuro); color: var(--amarillo-institucional); font-family: inherit; font-weight: 800; font-size: 0.92rem; padding: 11px 16px; cursor: pointer; }
@@ -1244,6 +1251,7 @@
         App.mostrarTopBar(false);
         App.setInstrucciones("<strong>INSTRUCCIONES:</strong> Mira el video proyectado. Al terminar el reloj se habilitarán las preguntas.");
         this.respuestas = new Array(this.PREGUNTAS.length).fill(null);
+        this.cerrado = false;
         this.indice = 0;
         this.pintarEspera(this.DURACION_VIDEO);
       },
@@ -1326,26 +1334,33 @@
                 </button>
               `).join('')}
             </div>
-            <div class="rt-nav">
-              <button class="rt-btn-next" id="rt-next" ${this.respuestas[this.indice] === null ? 'disabled' : ''}>${ultima ? 'FINALIZAR' : 'SIGUIENTE'}</button>
-            </div>
           </div>
         `;
 
         area.querySelectorAll('.rt-option').forEach(btn => {
           btn.onclick = () => {
-            this.respuestas[this.indice] = parseInt(btn.dataset.idx, 10);
-            this.pintarPregunta();
+            // Se bloquea al instante: marca la elegida y, si falla, muestra la correcta
+            area.querySelectorAll('.rt-option').forEach(b => b.disabled = true);
+            const sel = parseInt(btn.dataset.idx, 10);
+            this.respuestas[this.indice] = sel;
+            if (sel === p.correcta) {
+              btn.classList.add('correct');
+            } else {
+              btn.classList.add('wrong');
+              area.querySelector(`[data-idx="${p.correcta}"]`).classList.add('correct');
+            }
+            setTimeout(() => {
+              if (this.cerrado) return;
+              if (ultima) this.finalizar(true);
+              else { this.indice++; this.pintarPregunta(); }
+            }, 1000);
           };
         });
-
-        document.getElementById('rt-next').onclick = () => {
-          if (ultima) this.finalizar(true);
-          else { this.indice++; this.pintarPregunta(); }
-        };
       },
 
       finalizar(completado) {
+        if (this.cerrado) return;
+        this.cerrado = true;
         clearInterval(this.pollId);
         let aciertos = 0;
         this.PREGUNTAS.forEach((p, i) => { 
@@ -1398,7 +1413,7 @@
       },
 
       arrancar() {
-        App.iniciarCronometro(600, (completado) => this.finalizar(completado));
+        App.iniciarCronometro(300, (completado) => this.finalizar(completado));
       },
 
       mostrarPregunta() {
@@ -1437,7 +1452,7 @@
 
       finalizar(completado) {
         const puntos = completado ? (this.aciertos * 10 || 100) : (this.aciertos * 10);
-        const usados = Math.max(1, 600 - (App.tiempoRestante || 0));
+        const usados = Math.max(1, 300 - (App.tiempoRestante || 0));
         App.abrirModalResultados({
           completado,
           puntos,
