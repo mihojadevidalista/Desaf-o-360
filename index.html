@@ -482,7 +482,7 @@
     .ws-cell.missed { background-color: var(--rojo-fallo); color: #fff; }
 
     /* ==========================================================================
-       5. ESTILOS MÓDULO: BLOQUE 4 (RETO AUDIO)
+       5. ESTILOS MÓDULO: BLOQUE 4 (RETO PERSONAJE - VIDEO)
        ========================================================================== */
     .rv-player { background: var(--azul-oscuro); border-radius: var(--radio-curvo); padding: 7px 12px; display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
     .rv-player-top { display: flex; align-items: center; justify-content: center; gap: 14px; }
@@ -500,7 +500,9 @@
     .rv-bar-track { width: 100%; height: 5px; border-radius: 5px; background: rgba(255,255,255,0.22); position: relative; }
     .rv-bar-fill { height: 100%; width: 0%; border-radius: 5px; background: var(--amarillo-institucional); }
     .rv-bar-knob { position: absolute; top: 50%; left: 0%; width: 12px; height: 12px; border-radius: 50%; background: #fff; transform: translate(-50%, -50%); }
-    .rv-options { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; padding: 2px 2px 6px; }
+    .rv-options { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; padding: 2px 2px 6px; position: relative; touch-action: pan-y; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+    .rv-video { display: block; width: 100%; max-height: 24dvh; object-fit: contain; background: #000; border-radius: 12px; flex-shrink: 0; }
+    .rv-verify { flex-shrink: 0; }
     .rv-item { flex-shrink: 0; background: var(--blanco-puro); border: 2px solid transparent; border-radius: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
     .rv-item-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: none; background: transparent; cursor: pointer; text-align: left; font-family: inherit; }
     .rv-item-title { flex: 1; font-size: 0.8rem; font-weight: 700; color: var(--azul-oscuro); }
@@ -833,7 +835,7 @@
             { num: 1, titulo: "RETO VIDEO", modulo: ModuloBloque1 },
             { num: 2, titulo: "RETO DE PREGUNTAS", modulo: ModuloBloque2 },
             { num: 3, titulo: "SOPA DE LETRAS", modulo: ModuloBloque3 },
-            { num: 4, titulo: "RETO DE AUDIOS", modulo: ModuloBloque4 },
+            { num: 4, titulo: "¿QUIÉN ES EL PERSONAJE?", modulo: ModuloBloque4 },
             { num: 5, titulo: "BÚSQUEDA DE OBJETOS", modulo: ModuloBloque5 },
             { num: 6, titulo: "EL AHORCADO", modulo: ModuloBloque6 }
           ][this.bloqueActual];
@@ -1190,7 +1192,7 @@
        ========================================================================== */
     const ModuloBloque1 = {
       DURACION_VIDEO: 153,
-      TIEMPO_PREGUNTAS: 180,
+      TIEMPO_PREGUNTAS: 120,
       PREGUNTAS: [
         { pregunta: 'Según el video, ¿Qué porcentaje de cubanos mayores de 15 años pueden leer y escribir perfectamente?', opciones: ['98.9%', '99.8%', '98.6%', '99.6%'], correcta: 1 },
         { pregunta: '¿Cómo se llama el cine que aparece en el video?', opciones: ['YARA', 'RIVIERA', 'YUMURÍ', 'MARTÍ'], correcta: 2 },
@@ -1336,7 +1338,7 @@
       banco: [
         { pregunta: 'En el “Chavo del 8” ¿Cuál es el nombre del profesor Jirafales?', opciones: ['Rubén Jirafales', 'Inocencio Jirafales', 'Baldomero Jirafales', 'José Jirafales'], correcta: 1 },
         { pregunta: '¿A qué llaman “Guagua” los cubanos?', opciones: ['Un autobús', 'Un instrumento musical', 'Un baile tradicional', 'Un tipo de sombrero'], correcta: 0 },
-        { pregunta: '¿Qué animal aparece en la bandera de México?', opciones: ['Un águila con una serpiente', 'Un águila sola', 'Un cóndor con una serpiente', 'Un cóndor con una flor'], correcta: 0 },
+        { pregunta: '¿Qué animales aparecen en la bandera de México?', opciones: ['Un águila con una serpiente', 'Un águila sola', 'Un cóndor con una serpiente', 'Un cóndor con una flor'], correcta: 0 },
         { pregunta: '¿Cuál de las siguientes bebidas se asocia tradicionalmente con Cuba?', opciones: ['Sake', 'Mate', 'Lassi', 'Mojito'], correcta: 3 },
         { pregunta: '¿Con qué países tiene frontera terrestre México?', opciones: ['Estados Unidos y Guatemala', 'Guatemala, Estados Unidos, Belice y Honduras', 'Estados Unidos, Guatemala y Nicaragua', 'Guatemala, Estados Unidos y Belice'], correcta: 3 },
         { pregunta: '¿Cuál de los siguientes cantantes no es cubano?', opciones: ['Gloria Estefan', 'Silvio Rodríguez', 'Olga Tañon', 'Pablo Milanés'], correcta: 2 },
@@ -1425,7 +1427,7 @@
       preparar() {
         App.setTitulo("SOPA DE LETRAS");
         App.mostrarTopBar(true);
-        App.setInstrucciones('<strong>BUSCA LOS 15 PLATOS TÍPICOS DE MÉXICO</strong><br><span style="font-size:0.68rem;">Encuentra las palabras en todas las direcciones</span>');
+        App.setInstrucciones('<strong>BUSCA 15 PLATOS TÍPICOS DE MÉXICO</strong><br><span style="font-size:0.68rem;">Encuentra las palabras en todas las direcciones</span>');
         this.encontradas = [];
         this.generarTablero();
         this.render();
@@ -1595,7 +1597,7 @@
     };
 
     /* ==========================================================================
-       MÓDULO 4: RETO DE AUDIOS
+       MÓDULO 4: RETO ¿QUIÉN ES EL PERSONAJE?
        ========================================================================== */
     const ModuloBloque4 = {
       audio: null,
@@ -1608,16 +1610,16 @@
       seleccion: null,
 
       preparar() {
-        App.setTitulo("RETO DEL AUDIO");
+        App.setTitulo("¿QUIÉN ES EL PERSONAJE?");
         App.mostrarTopBar(true);
-        App.setInstrucciones("Escucha el audio, elige el orden correcto de las 8 voces y presiona VERIFICAR.");
+        App.setInstrucciones("Mira el video, elige la opción con los personajes correctos y presiona VERIFICAR.");
         this.seleccion = null;
 
         const area = document.getElementById('app-dynamic-area');
         area.innerHTML = `
           <div style="width:100%; height:100%; display:flex; flex-direction:column; gap:6px;">
             <div class="rv-player" id="rv-player">
-              <audio id="audio-el" src="recursos/Audio.mp3" preload="auto"></audio>
+              <video id="audio-el" class="rv-video" src="recursos/videopersonaje.mp4" preload="auto" playsinline webkit-playsinline></video>
               <div class="rv-player-top">
                 <button class="rv-btn-back" id="btn-back-5s">⏪ 5s</button>
                 <button class="rv-btn-play" id="btn-play-pause">▶</button>
@@ -1665,6 +1667,8 @@
           else { this.audio.pause(); playBtn.textContent = '▶'; player.classList.remove('rv-playing'); }
         };
         backBtn.onclick = () => { this.audio.currentTime = Math.max(0, this.audio.currentTime - 5); };
+        this.audio.onclick = () => playBtn.click();
+        this.audio.onended = () => { playBtn.textContent = '▶'; player.classList.remove('rv-playing'); };
         this.audio.ontimeupdate = () => {
           cur.textContent = App.formatearTiempo(Math.floor(this.audio.currentTime));
           dur.textContent = App.formatearTiempo(Math.floor(this.audio.duration || 0));
@@ -1678,7 +1682,10 @@
             area.querySelectorAll('.rv-item').forEach(it => it.classList.remove('open'));
             if (abrir) {
               item.classList.add('open');
-              setTimeout(() => item.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 30);
+              setTimeout(() => {
+                const cont = document.getElementById('rv-options-container');
+                if (cont) cont.scrollTo({ top: Math.max(0, item.offsetTop - 2), behavior: 'smooth' });
+              }, 30);
             }
           };
         });
