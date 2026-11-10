@@ -575,7 +575,7 @@
       align-items: center; justify-content: space-between; padding: 20px 14px; box-sizing: border-box;
       background: var(--blanco-puro); border-radius: 26px; text-align: center;
     }
-    .podio-trofeo { font-size: 4rem; margin: 4px 0; }
+    .podio-trofeo { font-size: 3.2rem; margin: 2px 0; }
     .podio-titulo { font-size: 1.4rem; font-weight: 900; color: var(--azul-oscuro); line-height: 1.1; margin: 0; }
     .podio-equipo { font-size: 1rem; font-weight: 800; color: #64748b; margin-top: 4px; }
     .podio-total {
@@ -597,6 +597,30 @@
     .select-options li.ocupado::after { content:' 🔒'; text-decoration:none; display:inline-block; }
     .select-institucional.bloqueado { pointer-events:none; }
     .btn-siguiente:disabled { cursor:default; }
+
+    /* ---- Resumen de respuestas (pantalla aparte del anuncio final) ---- */
+    .resumen-overlay { position:absolute; inset:0; z-index:150; background:var(--gris-fondo); display:none; flex-direction:column; }
+    .resumen-overlay.on { display:flex; }
+    .resumen-top { flex-shrink:0; background:var(--azul-oscuro); color:var(--amarillo-institucional); padding:10px 14px; display:flex; align-items:center; gap:10px; }
+    .resumen-top h2 { margin:0; flex:1; font-size:0.92rem; font-weight:900; letter-spacing:0.5px; text-transform:uppercase; }
+    .resumen-volver { background:var(--amarillo-institucional); color:var(--azul-oscuro); border:none; border-radius:var(--radio-boton); padding:6px 14px; font-family:'Poppins',sans-serif; font-size:0.72rem; font-weight:800; cursor:pointer; }
+    .resumen-scroll { flex:1; min-height:0; overflow-y:auto; touch-action:pan-y; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:12px 12px 28px; display:flex; flex-direction:column; gap:12px; }
+    .rs-total { background:#fff; border:3px solid var(--azul-oscuro); border-radius:var(--radio-curvo); padding:10px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .rs-total .eq { font-size:0.82rem; font-weight:800; color:var(--azul-oscuro); text-transform:uppercase; }
+    .rs-total .st { font-size:0.7rem; font-weight:700; color:#64748b; margin-top:2px; }
+    .rs-total .pt { font-size:1.6rem; font-weight:900; color:var(--azul-oscuro); line-height:1; white-space:nowrap; }
+    .rs-bloque { background:#fff; border-radius:var(--radio-curvo); overflow:hidden; box-shadow:0 3px 8px rgba(6,56,83,0.08); flex-shrink:0; }
+    .rs-bloque-head { background:var(--amarillo-institucional); color:var(--azul-oscuro); padding:8px 12px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .rs-bloque-head .t { font-size:0.74rem; font-weight:900; text-transform:uppercase; }
+    .rs-bloque-head .p { font-size:0.7rem; font-weight:800; white-space:nowrap; }
+    .rs-item { display:flex; gap:8px; padding:8px 12px; border-top:1px solid #e5e7eb; font-size:0.74rem; line-height:1.3; color:#334155; }
+    .rs-ic { flex-shrink:0; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:900; color:#fff; margin-top:1px; }
+    .rs-ic.ok { background:var(--verde-acierto); } .rs-ic.mal { background:var(--rojo-fallo); } .rs-ic.neu { background:#94a3b8; }
+    .rs-body { flex:1; min-width:0; }
+    .rs-q { font-weight:700; color:var(--azul-oscuro); }
+    .rs-tu { margin-top:2px; font-weight:600; } .rs-tu.ok { color:#047857; } .rs-tu.mal { color:#b91c1c; } .rs-tu.neu { color:#64748b; }
+    .rs-cor { margin-top:2px; font-weight:600; color:#047857; }
+    .rs-vacio { padding:10px 12px; font-size:0.72rem; color:#64748b; }
   </style>
 </head>
 <body>
@@ -644,6 +668,15 @@
       <div class="pausa-ic" id="pausa-ic">⏸</div>
       <h2 id="pausa-titulo">Juego en pausa</h2>
       <p id="pausa-texto">Espera a que el administrador reanude la competencia.</p>
+    </div>
+
+    <!-- Pantalla de resumen de respuestas (se abre desde el podio) -->
+    <div class="resumen-overlay" id="resumen-overlay">
+      <div class="resumen-top">
+        <h2>Resumen de respuestas</h2>
+        <button class="resumen-volver" id="resumen-volver">← Volver</button>
+      </div>
+      <div class="resumen-scroll" id="resumen-scroll"></div>
     </div>
 
     <!-- Modal Universal de Resultados por Bloque -->
@@ -694,6 +727,24 @@
       cronometroActivo: false,
 
       pausado: false,
+
+      /* Historial de respuestas por bloque (para la pantalla de resumen final).
+         Se guarda en el dispositivo para sobrevivir a recargas. */
+      hist: null,
+
+      histCargar() {
+        try {
+          const h = JSON.parse(Net.leer('d360_hist') || 'null');
+          if (h && String(h.eq) === String(this.equipo.id) && h.bloques) { this.hist = h; return; }
+        } catch (e) {}
+        this.hist = { eq: String(this.equipo.id), bloques: {} };
+      },
+
+      registrarBloque(n, datos) {
+        if (!this.hist || String(this.hist.eq) !== String(this.equipo.id)) this.histCargar();
+        this.hist.bloques[n] = datos;
+        Net.guardar('d360_hist', JSON.stringify(this.hist));
+      },
 
       init() {
         this.bloqueActual = 0;
@@ -809,10 +860,11 @@
         }, 3700);
       },
 
-      abrirModalResultados({ completado, puntos, correctas, incorrectas, segundosUsados, onAvanzar }) {
+      abrirModalResultados({ completado, puntos, correctas, incorrectas, segundosUsados, detalle, onAvanzar }) {
         this.detenerCronometro();
         this.mostrarBotonFin(false);
         this.puntajeTotal += Math.round(puntos);
+        this.registrarBloque(this.bloqueActual, { puntos: Math.round(puntos), segundos: segundosUsados, completado: !!completado, items: detalle || null });
         Net.reportar(this.bloqueActual, Math.round(puntos), segundosUsados);
 
         document.getElementById('modal-badge-texto').textContent = completado ? "RETO COMPLETADO" : "TIEMPO AGOTADO";
@@ -1368,6 +1420,16 @@
         });
         const puntos = Math.round((aciertos / this.PREGUNTAS.length) * 100);
         const usados = Math.max(1, this.TIEMPO_PREGUNTAS - (App.tiempoRestante || 0));
+        const L = ['A', 'B', 'C', 'D'];
+        const detalle = this.PREGUNTAS.map((p, i) => {
+          const r = this.respuestas[i];
+          return {
+            q: p.pregunta,
+            tu: r == null ? 'Sin responder' : `Tu respuesta: ${L[r]}) ${p.opciones[r]}`,
+            ok: r != null && r === p.correcta,
+            correcta: `${L[p.correcta]}) ${p.opciones[p.correcta]}`
+          };
+        });
 
         App.abrirModalResultados({
           completado,
@@ -1375,6 +1437,7 @@
           correctas: aciertos || this.PREGUNTAS.length,
           incorrectas: Math.max(0, this.PREGUNTAS.length - aciertos),
           segundosUsados: usados,
+          detalle,
           onAvanzar: () => App.avanzarSiguienteBloque()
         });
       }
@@ -1406,6 +1469,7 @@
         App.mostrarTopBar(true);
         App.setInstrucciones("Selecciona la respuesta correcta. Cada acierto vale 10 puntos.");
         this.preguntas = [...this.banco].sort(() => Math.random() - 0.5);
+        this.registro = new Array(this.preguntas.length).fill(null);
         this.indice = 0;
         this.aciertos = 0;
         this.fallos = 0;
@@ -1432,6 +1496,7 @@
           btn.onclick = () => {
             area.querySelectorAll('.b2-opt-btn').forEach(b => b.disabled = true);
             const sel = parseInt(btn.dataset.i, 10);
+            this.registro[this.indice] = sel;
             if (sel === p.correcta) {
               btn.classList.add('correct');
               this.aciertos++;
@@ -1453,12 +1518,22 @@
       finalizar(completado) {
         const puntos = completado ? (this.aciertos * 10 || 100) : (this.aciertos * 10);
         const usados = Math.max(1, 300 - (App.tiempoRestante || 0));
+        const detalle = this.preguntas.map((p, i) => {
+          const r = (this.registro || [])[i];
+          return {
+            q: p.pregunta,
+            tu: r == null ? 'Sin responder' : `Tu respuesta: ${p.opciones[r]}`,
+            ok: r != null && r === p.correcta,
+            correcta: p.opciones[p.correcta]
+          };
+        });
         App.abrirModalResultados({
           completado,
           puntos,
           correctas: this.aciertos || 10,
           incorrectas: this.fallos,
           segundosUsados: usados,
+          detalle,
           onAvanzar: () => App.avanzarSiguienteBloque()
         });
       }
@@ -1634,12 +1709,17 @@
       finalizar(completado) {
         const puntos = completado ? 100 : Math.round((this.encontradas.length / this.palabras.length) * 100);
         const usados = Math.max(1, 420 - (App.tiempoRestante || 0));
+        const detalle = this.palabras.map(pal => {
+          const f = this.encontradas.includes(pal);
+          return { q: pal, tu: f ? 'Encontrada' : 'No encontrada', ok: f };
+        });
         App.abrirModalResultados({
           completado,
           puntos,
           correctas: completado ? 15 : this.encontradas.length,
           incorrectas: completado ? 0 : this.palabras.length - this.encontradas.length,
           segundosUsados: usados,
+          detalle,
           onAvanzar: () => App.avanzarSiguienteBloque()
         });
       }
@@ -1753,22 +1833,34 @@
         vBtn.onclick = () => {
           this.audio.pause();
           const acerto = this.seleccion === 'C';
-          this.finalizar(acerto);
+          this.finalizar(acerto, this.seleccion, true);
         };
       },
 
       arrancar() {
         App.iniciarCronometro(150, (completado) => {
           if (this.audio) this.audio.pause();
-          this.finalizar(false);
+          this.finalizar(false, this.seleccion, false);
         });
       },
 
-      finalizar(acerto) {
+      finalizar(acerto, elegida, verificada) {
         if (this.audio) this.audio.pause();
         const puntos = acerto ? 100 : 0;
         const usados = Math.max(1, 150 - (App.tiempoRestante || 0));
+        if (elegida === undefined) { elegida = acerto ? 'C' : null; verificada = true; }
+        const nombres = (k) => this.opciones[k].join(', ');
+        let tu;
+        if (!elegida) tu = 'Sin responder (se agotó el tiempo)';
+        else tu = `Tu respuesta: Opción ${elegida}${verificada ? '' : ' (sin verificar a tiempo)'} — ${nombres(elegida)}`;
+        const detalle = [{
+          q: '¿Quién es el personaje? Opción con los nombres correctos',
+          tu,
+          ok: !!elegida && !!verificada && elegida === 'C',
+          correcta: `Opción C — ${nombres('C')}`
+        }];
         App.abrirModalResultados({
+          detalle,
           completado: acerto,
           puntos: acerto ? 100 : 100, // Al forzar finalizar se otorgan 100 pts
           correctas: 1,
@@ -1908,12 +2000,17 @@
       finalizar(completado) {
         const puntos = completado ? 100 : (this.encontrados.size * 10);
         const usados = Math.max(1, 150 - (App.tiempoRestante || 0));
+        const detalle = this.objetos.map(o => {
+          const f = this.encontrados.has(o.id);
+          return { q: o.nombre, tu: f ? 'Encontrado' : 'No encontrado', ok: f };
+        });
         App.abrirModalResultados({
           completado,
           puntos,
           correctas: completado ? 10 : this.encontrados.size,
           incorrectas: completado ? 0 : this.fallos,
           segundosUsados: usados,
+          detalle,
           onAvanzar: () => App.avanzarSiguienteBloque()
         });
       }
@@ -1928,24 +2025,29 @@
         { palabra: "VAMOS A COMER TACOS Y CHILAQUILES CON AGUA DE HORCHATA", pista: "Completa la frase", pts: 70 },
         { palabra: "LA GUAYABERA NUNCA PASA DE MODA", pista: "Completa la frase", pts: 40 }
       ],
+      MAX_ERRORES: 3,
       ronda: 0,
       errores: 0,
+      rondaCerrada: false,
+      _hist: [],
       adivinadas: new Set(),
 
       preparar() {
         App.setTitulo("EL AHORCADO");
         App.mostrarTopBar(true);
-        App.setInstrucciones("Adivina la palabra antes de agotar los 6 intentos.");
+        App.setInstrucciones("Completa la frase antes de agotar los " + this.MAX_ERRORES + " intentos.");
         this.ronda = 0;
+        this._hist = [];
         this.iniciarRondaHTML();
       },
 
       arrancar() {
-        App.iniciarCronometro(210, () => this.procesarFallo());
+        App.iniciarCronometro(210, () => this.procesarFallo('tiempo'));
       },
 
       iniciarRondaHTML() {
         this.errores = 0;
+        this.rondaCerrada = false;
         this.adivinadas.clear();
         const p = this.palabras[this.ronda];
 
@@ -1953,7 +2055,7 @@
         area.innerHTML = `
           <div class="hg-wrapper">
             <div class="hg-pista">Completa la frase</div>
-            <div class="hg-badge" id="hg-badge">Intentos restantes: <span id="hg-intentos">6</span></div>
+            <div class="hg-badge" id="hg-badge">Intentos restantes: <span id="hg-intentos">${this.MAX_ERRORES}</span></div>
             <svg class="hg-canvas" viewBox="0 0 200 220">
               <line id="hg-p1" x1="20" y1="210" x2="120" y2="210" class="hg-part-visible" />
               <line id="hg-p2" x1="70" y1="210" x2="70" y2="20" class="hg-part-visible" />
@@ -2002,6 +2104,7 @@
       },
 
       probarLetra(letra, btn) {
+        if (this.rondaCerrada) return;
         btn.disabled = true;
         const pal = this.palabras[this.ronda].palabra;
         if (pal.includes(letra)) {
@@ -2013,20 +2116,27 @@
         } else {
           this.errores++;
           btn.classList.add('wrong');
-          const parte = document.getElementById(`hg-p${this.errores + 4}`);
-          if (parte) parte.classList.replace('hg-part-hidden', 'hg-part-visible');
-          document.getElementById('hg-intentos').textContent = Math.max(0, 6 - this.errores);
-          if (this.errores >= 4) document.getElementById('hg-badge').classList.add('peligro');
-          if (this.errores >= 6) this.procesarFallo();
+          // Con 3 intentos, cada error dibuja 2 partes del muñeco (cabeza+cuerpo, brazos, piernas)
+          [2 * this.errores + 3, 2 * this.errores + 4].forEach(n => {
+            const parte = document.getElementById(`hg-p${n}`);
+            if (parte) parte.classList.replace('hg-part-hidden', 'hg-part-visible');
+          });
+          document.getElementById('hg-intentos').textContent = Math.max(0, this.MAX_ERRORES - this.errores);
+          if (this.errores >= this.MAX_ERRORES - 1) document.getElementById('hg-badge').classList.add('peligro');
+          if (this.errores >= this.MAX_ERRORES) this.procesarFallo('intentos');
         }
       },
 
-      procesarFallo() {
+      procesarFallo(motivo) {
+        if (this.rondaCerrada) return;   // evita avanzar dos veces la misma ronda
+        this.rondaCerrada = true;
+        document.querySelectorAll('#hg-keyboard .hg-key').forEach(k => { k.disabled = true; });
+        this._hist[this.ronda] = { ok: false, errores: this.errores, motivo: motivo || 'tiempo' };
         if (this.ronda < 2) {
           this.ronda++;
           setTimeout(() => {
             this.iniciarRondaHTML();
-            App.iniciarCronometro(210, () => this.procesarFallo());
+            App.iniciarCronometro(210, () => this.procesarFallo('tiempo'));
           }, 800);
         } else {
           this.finalizar(false);
@@ -2036,7 +2146,19 @@
       finalizar(adivino) {
         const puntos = adivino ? (this.palabras[this.ronda].pts || 100) : 0;
         const usados = Math.max(1, 210 - (App.tiempoRestante || 0));
+        if (adivino) {
+          this.rondaCerrada = true;
+          this._hist[this.ronda] = { ok: true, errores: this.errores };
+        }
+        const detalle = this.palabras.map((p, i) => {
+          const h = this._hist[i];
+          const base = { q: `Frase ${i + 1} · vale ${p.pts} pts`, correcta: p.palabra, siempre: true, cl: 'Frase' };
+          if (!h) return { ...base, tu: 'No fue necesaria (ya acertaste una frase)', ok: null };
+          if (h.ok) return { ...base, tu: `Acertada (${h.errores} ${h.errores === 1 ? 'error' : 'errores'} de ${this.MAX_ERRORES})`, ok: true };
+          return { ...base, tu: h.motivo === 'intentos' ? `Fallada: se agotaron los ${this.MAX_ERRORES} intentos` : 'Fallada: se agotó el tiempo', ok: false };
+        });
         App.abrirModalResultados({
+          detalle,
           completado: adivino,
           puntos,
           correctas: adivino ? 1 : 0,
@@ -2072,10 +2194,75 @@
             <p id="podio-puesto" style="font-size:0.9rem; font-weight:800; color:var(--azul-oscuro); margin:0;"></p>
             <p id="podio-sync" style="font-size:0.75rem; color:#475569; margin:0;"></p>
             <p style="font-size:0.82rem; color:#475569; margin:0;">Superaron con éxito los 6 bloques del Desafío 360.</p>
+            <button class="btn-siguiente" id="btn-ver-resultados" style="animation:none;">📋 VER RESULTADOS</button>
           </div>
         `;
+        document.getElementById('btn-ver-resultados').onclick = () => ResumenFinal.abrir();
         Net.actualizarSync();
         if (Net.estado) Net.actualizarPodio(Net.estado, Net.estado.equipos.find(e => e.id === Net.estado.miEquipo));
+      }
+    };
+
+    /* ==========================================================================
+       RESUMEN DE RESPUESTAS (pantalla aparte, se abre desde el podio)
+       ========================================================================== */
+    const ResumenFinal = {
+      TITULOS: [null, 'Reto Video', 'Reto de Preguntas', 'Sopa de Letras', '¿Quién es el personaje?', 'Búsqueda de Objetos', 'El Ahorcado'],
+
+      abrir() {
+        this.render();
+        document.getElementById('resumen-overlay').classList.add('on');
+        document.getElementById('resumen-scroll').scrollTop = 0;
+        document.getElementById('resumen-volver').onclick = () => this.cerrar();
+      },
+
+      cerrar() { document.getElementById('resumen-overlay').classList.remove('on'); },
+
+      render() {
+        if (!App.hist || String(App.hist.eq) !== String(App.equipo.id)) App.histCargar();
+        const est = Net.estado;
+        const mio = est && est.miEquipo != null ? est.equipos.find(e => e.id === est.miEquipo) : null;
+        const cuenta = (items) => ({
+          ok: items.filter(i => i.ok === true).length,
+          mal: items.filter(i => i.ok === false).length
+        });
+
+        let totOk = 0, totMal = 0, bloquesHtml = '';
+        for (let n = 1; n <= 6; n++) {
+          const b = App.hist.bloques[n];
+          const items = b && b.items;
+          const srv = mio && mio.pts ? mio.pts[n - 1] : null;
+          const pts = b ? b.puntos : (srv !== null && srv !== undefined ? srv : null);
+          let cab = '';
+          if (pts !== null) cab += `${pts} pts`;
+          let cuerpo;
+          if (items && items.length) {
+            const c = cuenta(items);
+            totOk += c.ok; totMal += c.mal;
+            cab += ` · ✓${c.ok} ✗${c.mal}`;
+            cuerpo = items.map(it => {
+              const cls = it.ok === true ? 'ok' : it.ok === false ? 'mal' : 'neu';
+              const ic = it.ok === true ? '✓' : it.ok === false ? '✗' : '–';
+              const mostrarCor = it.correcta && (it.ok === false || it.siempre);
+              return `<div class="rs-item"><span class="rs-ic ${cls}">${ic}</span><div class="rs-body">
+                <div class="rs-q">${escHtml(it.q)}</div>
+                ${it.tu ? `<div class="rs-tu ${cls}">${escHtml(it.tu)}</div>` : ''}
+                ${mostrarCor ? `<div class="rs-cor">${escHtml(it.cl || 'Correcta')}: ${escHtml(it.correcta)}</div>` : ''}
+              </div></div>`;
+            }).join('');
+          } else {
+            cuerpo = '<div class="rs-vacio">El detalle de este bloque no está disponible en este dispositivo.</div>';
+          }
+          bloquesHtml += `<div class="rs-bloque">
+            <div class="rs-bloque-head"><span class="t">Bloque ${n} · ${escHtml(this.TITULOS[n])}</span><span class="p">${cab}</span></div>
+            ${cuerpo}</div>`;
+        }
+
+        const total = mio ? mio.total : App.puntajeTotal;
+        const top = `<div class="rs-total">
+          <div><div class="eq">${escHtml(App.equipo.nombre)}</div><div class="st">✓ ${totOk} correctas · ✗ ${totMal} incorrectas</div></div>
+          <div class="pt">${total} pts</div></div>`;
+        document.getElementById('resumen-scroll').innerHTML = top + bloquesHtml;
       }
     };
 
